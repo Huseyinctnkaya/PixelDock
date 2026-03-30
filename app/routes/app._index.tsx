@@ -309,21 +309,19 @@ function SetupStep({
             <Icon source={MinusCircleIcon} tone="subdued" />
           )}
         </Box>
-        <BlockStack gap="100" >
-          <InlineStack align="space-between" blockAlign="center" wrap={false}>
-            <Text
-              as="p"
-              variant="bodyMd"
-              fontWeight="semibold"
-              tone={completed ? "subdued" : undefined}
-            >
-              {number}. {title}
-            </Text>
-            {action}
-          </InlineStack>
+        <BlockStack gap="100">
+          <Text
+            as="p"
+            variant="bodyMd"
+            fontWeight="semibold"
+            tone={completed ? "subdued" : undefined}
+          >
+            {number}. {title}
+          </Text>
           <Text as="p" variant="bodySm" tone="subdued">
             {description}
           </Text>
+          {action && <Box paddingBlockStart="100">{action}</Box>}
         </BlockStack>
       </InlineStack>
       {!last && (
