@@ -11,6 +11,7 @@ import {
   Card,
   ChoiceList,
   FormLayout,
+  InlineStack,
   Layout,
   Page,
   Text,
@@ -24,11 +25,15 @@ export const SETTINGS_KEY = "app_settings";
 export type AppSettings = {
   maxFileSizeMb: number;
   acceptedTypes: string[]; // ["image/png", "image/jpeg", "image/webp"]
+  triggerLabel: string;
+  triggerColor: string;
 };
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   maxFileSizeMb: 5,
   acceptedTypes: ["image/png", "image/jpeg"],
+  triggerLabel: "Patch Ekle",
+  triggerColor: "#C84B11",
 };
 
 const TYPE_OPTIONS = [
@@ -64,6 +69,8 @@ export async function fetchAppSettings(
       acceptedTypes: Array.isArray(parsed.acceptedTypes) && parsed.acceptedTypes.length
         ? parsed.acceptedTypes
         : DEFAULT_APP_SETTINGS.acceptedTypes,
+      triggerLabel: parsed.triggerLabel ?? DEFAULT_APP_SETTINGS.triggerLabel,
+      triggerColor: parsed.triggerColor ?? DEFAULT_APP_SETTINGS.triggerColor,
     };
   } catch {
     return DEFAULT_APP_SETTINGS;
@@ -86,10 +93,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const maxFileSizeMb = Math.min(20, Math.max(1, Number(form.get("maxFileSizeMb")) || 5));
   const acceptedTypes = form.getAll("acceptedTypes") as string[];
+  const triggerLabel = (form.get("triggerLabel") as string)?.trim() || DEFAULT_APP_SETTINGS.triggerLabel;
+  const triggerColor = (form.get("triggerColor") as string)?.trim() || DEFAULT_APP_SETTINGS.triggerColor;
 
   const settings: AppSettings = {
     maxFileSizeMb,
     acceptedTypes: acceptedTypes.length ? acceptedTypes : DEFAULT_APP_SETTINGS.acceptedTypes,
+    triggerLabel,
+    triggerColor,
   };
 
   const appRes = await admin.graphql(`#graphql
@@ -137,6 +148,8 @@ export default function Settings() {
 
   const [maxFileSizeMb, setMaxFileSizeMb] = useState(String(settings.maxFileSizeMb));
   const [acceptedTypes, setAcceptedTypes] = useState<string[]>(settings.acceptedTypes);
+  const [triggerLabel, setTriggerLabel] = useState(settings.triggerLabel);
+  const [triggerColor, setTriggerColor] = useState(settings.triggerColor);
 
   const saved = fetcher.data?.ok === true;
   const saveError = fetcher.data?.error;
@@ -145,6 +158,8 @@ export default function Settings() {
     const form = new FormData();
     form.append("maxFileSizeMb", maxFileSizeMb);
     acceptedTypes.forEach((t) => form.append("acceptedTypes", t));
+    form.append("triggerLabel", triggerLabel);
+    form.append("triggerColor", triggerColor);
     fetcher.submit(form, { method: "post" });
   };
 
@@ -169,6 +184,43 @@ export default function Settings() {
             {saveError && (
               <Banner tone="critical">{saveError}</Banner>
             )}
+
+            <Card>
+              <BlockStack gap="400">
+                <BlockStack gap="100">
+                  <Text as="h2" variant="headingSm" fontWeight="semibold">
+                    Buton Ayarları
+                  </Text>
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Ürün sayfasında görünen "Patch Ekle" butonunun görünümü.
+                  </Text>
+                </BlockStack>
+                <FormLayout>
+                  <TextField
+                    label="Buton yazısı"
+                    value={triggerLabel}
+                    onChange={setTriggerLabel}
+                    autoComplete="off"
+                    name="triggerLabel"
+                  />
+                  <Box>
+                    <BlockStack gap="100">
+                      <Text as="p" variant="bodyMd">Buton rengi</Text>
+                      <InlineStack gap="300" blockAlign="center">
+                        <input
+                          type="color"
+                          value={triggerColor}
+                          onChange={(e) => setTriggerColor(e.target.value)}
+                          style={{ width: 48, height: 36, cursor: "pointer", border: "1px solid #ccc", borderRadius: 6, padding: 2 }}
+                        />
+                        <Text as="p" variant="bodySm" tone="subdued">{triggerColor}</Text>
+                        <div style={{ width: 80, height: 32, borderRadius: 6, background: triggerColor }} />
+                      </InlineStack>
+                    </BlockStack>
+                  </Box>
+                </FormLayout>
+              </BlockStack>
+            </Card>
 
             <Card>
               <BlockStack gap="400">

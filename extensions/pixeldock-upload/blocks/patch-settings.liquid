@@ -9,7 +9,7 @@
   {{ block.shopify_attributes }}
 >
   <button class="pixeldock-trigger" type="button">
-    {{ block.settings.button_label | default: 'Patch Ekle' }}
+    Patch Ekle
   </button>
 
   <div class="pixeldock-modal" aria-hidden="true" role="dialog" aria-modal="true">
@@ -41,12 +41,6 @@
   "name": "PixelDock Upload",
   "target": "section",
   "settings": [
-    {
-      "type": "text",
-      "id": "button_label",
-      "label": "Buton Yazısı",
-      "default": "Patch Ekle"
-    },
     {
       "type": "text",
       "id": "form_id",

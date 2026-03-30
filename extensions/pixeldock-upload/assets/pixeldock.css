@@ -16,7 +16,7 @@
 }
 
 .pixeldock-trigger:hover {
-  background: #b04010;
+  background: var(--pd-trigger-hover, #b04010);
 }
 
 /* Modal */

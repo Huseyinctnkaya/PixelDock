@@ -1,6 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import type { FormEntry, FormsRegistry } from "./app.forms._index";
+import { fetchAppSettings } from "./app.settings";
 
 const NAMESPACE = "pixeldock";
 const REGISTRY_KEY = "forms_registry";
@@ -55,10 +56,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return corsJson({ config: null });
   }
 
+  const appSettings = await fetchAppSettings(admin);
+
   const config = {
     title: form.title,
     submitLabel: form.submitLabel,
     blocks: form.blocks,
+    triggerLabel: appSettings.triggerLabel,
+    triggerColor: appSettings.triggerColor,
   };
 
   return corsJson({ config });

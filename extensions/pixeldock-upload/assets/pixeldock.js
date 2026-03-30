@@ -15,6 +15,15 @@
       .catch(function () { return null; });
   }
 
+  // ─── Color helper ─────────────────────────────────────────────────────────
+  function shadeColor(hex, percent) {
+    var num = parseInt(hex.replace('#', ''), 16);
+    var r = Math.min(255, Math.max(0, (num >> 16) + percent));
+    var g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + percent));
+    var b = Math.min(255, Math.max(0, (num & 0xff) + percent));
+    return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+  }
+
   // ─── DOM helpers ──────────────────────────────────────────────────────────
   function el(tag, attrs, children) {
     var elem = document.createElement(tag);
@@ -339,6 +348,16 @@
       if (!config) {
         console.warn('[PixelDock] Form config alınamadı.');
         return;
+      }
+
+      // Set trigger button label and color
+      var triggerEl = block.querySelector('.pixeldock-trigger');
+      if (triggerEl) {
+        if (config.triggerLabel) triggerEl.textContent = config.triggerLabel;
+        if (config.triggerColor) {
+          triggerEl.style.backgroundColor = config.triggerColor;
+          triggerEl.style.setProperty('--pd-trigger-hover', shadeColor(config.triggerColor, -15));
+        }
       }
 
       // Set modal title
