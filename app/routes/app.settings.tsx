@@ -19,7 +19,8 @@ import {
   Text,
   TextField,
 } from "@shopify/polaris";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 
 // ─── Color conversion helpers ─────────────────────────────────────────────────
 
@@ -137,6 +138,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Settings() {
   const { settings } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
   const isSaving = fetcher.state !== "idle";
 
   const [maxFileSizeMb, setMaxFileSizeMb] = useState(String(settings.maxFileSizeMb));
@@ -146,13 +148,24 @@ export default function Settings() {
   const [displayMode, setDisplayMode] = useState<string[]>([settings.displayMode]);
   const [colorHsb, setColorHsb] = useState<HSB>(() => hexToHsb(settings.triggerColor));
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
   const handleColorChange = useCallback((hsb: HSB) => {
     setColorHsb(hsb);
     setTriggerColor(hsbToHex(hsb));
+    setIsDirty(true);
   }, []);
 
-  const saved = fetcher.data?.ok === true;
+  useEffect(() => {
+    if (isDirty) shopify.saveBar.show("settings-save-bar");
+    else shopify.saveBar.hide("settings-save-bar");
+  }, [isDirty, shopify]);
+
+  // Hide save bar after successful save
+  useEffect(() => {
+    if (fetcher.data?.ok === true) setIsDirty(false);
+  }, [fetcher.data]);
+
   const saveError = fetcher.data?.error;
 
   const handleSave = () => {
@@ -165,24 +178,26 @@ export default function Settings() {
     fetcher.submit(form, { method: "post" });
   };
 
+  const handleDiscard = () => {
+    setMaxFileSizeMb(String(settings.maxFileSizeMb));
+    setAcceptedTypes(settings.acceptedTypes);
+    setTriggerLabel(settings.triggerLabel);
+    setTriggerColor(settings.triggerColor);
+    setColorHsb(hexToHsb(settings.triggerColor));
+    setDisplayMode([settings.displayMode]);
+    setIsDirty(false);
+  };
+
   return (
-    <Page
-      title="Ayarlar"
-      primaryAction={
-        <Button variant="primary" loading={isSaving} onClick={handleSave}>
-          Kaydet
-        </Button>
-      }
-    >
+    <Page title="Ayarlar">
+      <SaveBar id="settings-save-bar">
+        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Kaydet</button>
+        <button onClick={handleDiscard}>Vazgeç</button>
+      </SaveBar>
       <Layout>
         <Layout.Section>
           <BlockStack gap="400">
 
-            {saved && (
-              <Banner tone="success" onDismiss={() => {}}>
-                Ayarlar kaydedildi.
-              </Banner>
-            )}
             {saveError && (
               <Banner tone="critical">{saveError}</Banner>
             )}
@@ -201,7 +216,7 @@ export default function Settings() {
                   <TextField
                     label="Buton yazısı"
                     value={triggerLabel}
-                    onChange={setTriggerLabel}
+                    onChange={(v) => { setTriggerLabel(v); setIsDirty(true); }}
                     autoComplete="off"
                     name="triggerLabel"
                   />
@@ -220,7 +235,7 @@ export default function Settings() {
                       },
                     ]}
                     selected={displayMode}
-                    onChange={setDisplayMode}
+                    onChange={(v) => { setDisplayMode(v); setIsDirty(true); }}
                   />
                   <Box>
                     <BlockStack gap="100">
@@ -274,7 +289,7 @@ export default function Settings() {
                   <TextField
                     label="Maksimum dosya boyutu (MB)"
                     value={maxFileSizeMb}
-                    onChange={setMaxFileSizeMb}
+                    onChange={(v) => { setMaxFileSizeMb(v); setIsDirty(true); }}
                     type="number"
                     min="1"
                     max="20"
@@ -287,7 +302,7 @@ export default function Settings() {
                     title="Kabul edilen dosya tipleri"
                     choices={TYPE_OPTIONS}
                     selected={acceptedTypes}
-                    onChange={setAcceptedTypes}
+                    onChange={(v) => { setAcceptedTypes(v); setIsDirty(true); }}
                   />
                 </FormLayout>
               </BlockStack>

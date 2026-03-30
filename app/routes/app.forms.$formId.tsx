@@ -27,8 +27,8 @@ import {
   ChevronDownIcon,
   ClipboardIcon,
 } from "@shopify/polaris-icons";
-import { useState, useCallback, useRef } from "react";
-import { useAppBridge } from "@shopify/app-bridge-react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
 import type { FormsRegistry, FormEntry } from "../forms.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -196,6 +196,7 @@ export default function FormEditor() {
   const isSaving = fetcher.state !== "idle";
 
   const [form, setForm] = useState<FormEntry>(initialForm);
+  const [isDirty, setIsDirty] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newBlockType, setNewBlockType] = useState<BlockType>("input");
 
@@ -222,6 +223,7 @@ export default function FormEditor() {
       blocks.splice(dropIdx, 0, moved);
       return { ...f, blocks };
     });
+    setIsDirty(true);
   }, []);
 
   const handleDragEnd = useCallback(() => {
@@ -229,14 +231,27 @@ export default function FormEditor() {
     setDragOverIdx(-1);
   }, []);
 
-  const saved = fetcher.data?.ok === true;
   const saveError = fetcher.data?.error;
+
+  useEffect(() => {
+    if (isDirty) shopify.saveBar.show("form-editor-save-bar");
+    else shopify.saveBar.hide("form-editor-save-bar");
+  }, [isDirty, shopify]);
+
+  useEffect(() => {
+    if (fetcher.data?.ok === true) setIsDirty(false);
+  }, [fetcher.data]);
 
   const handleSave = useCallback(() => {
     const fd = new FormData();
     fd.append("config", JSON.stringify(form));
     fetcher.submit(fd, { method: "post" });
   }, [form, fetcher]);
+
+  const handleDiscard = useCallback(() => {
+    setForm(initialForm);
+    setIsDirty(false);
+  }, [initialForm]);
 
   const handleCopyId = useCallback(() => {
     navigator.clipboard.writeText(form.id).then(() => {
@@ -260,6 +275,7 @@ export default function FormEditor() {
       ...(newBlockType === "checkbox_group" ? { options: "Seçenek 1, Seçenek 2" } : {}),
     };
     setForm((f) => ({ ...f, blocks: [...f.blocks, newBlock] }));
+    setIsDirty(true);
     setAddModalOpen(false);
   }, [newBlockType]);
 
@@ -268,10 +284,12 @@ export default function FormEditor() {
       ...f,
       blocks: f.blocks.map((b) => (b.id === id ? { ...b, ...patch } : b)),
     }));
+    setIsDirty(true);
   }, []);
 
   const deleteBlock = useCallback((id: string) => {
     setForm((f) => ({ ...f, blocks: f.blocks.filter((b) => b.id !== id) }));
+    setIsDirty(true);
   }, []);
 
   const moveBlock = useCallback((id: string, direction: "up" | "down") => {
@@ -284,6 +302,7 @@ export default function FormEditor() {
       [blocks[idx], blocks[next]] = [blocks[next], blocks[idx]];
       return { ...f, blocks };
     });
+    setIsDirty(true);
   }, []);
 
   return (
@@ -291,19 +310,13 @@ export default function FormEditor() {
       title={form.name || "Form Düzenle"}
       subtitle={`Form ID: ${form.id}`}
       backAction={{ content: "Formlar", url: "/app/forms" }}
-      primaryAction={
-        <Button variant="primary" loading={isSaving} onClick={handleSave}>
-          Kaydet
-        </Button>
-      }
     >
+      <SaveBar id="form-editor-save-bar">
+        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Kaydet</button>
+        <button onClick={handleDiscard}>Vazgeç</button>
+      </SaveBar>
       <BlockStack gap="500">
 
-        {saved && (
-          <Banner tone="success" onDismiss={() => {}}>
-            Form kaydedildi.
-          </Banner>
-        )}
         {saveError && <Banner tone="critical">{saveError}</Banner>}
 
         {/* Form meta */}
@@ -335,7 +348,7 @@ export default function FormEditor() {
               <TextField
                 label="Form Adı"
                 value={form.name}
-                onChange={(v) => setForm((f) => ({ ...f, name: v }))}
+                onChange={(v) => { setForm((f) => ({ ...f, name: v })); setIsDirty(true); }}
                 autoComplete="off"
                 helpText="Bu ad yalnızca yönetim panelinde görünür"
               />
@@ -343,13 +356,13 @@ export default function FormEditor() {
                 <TextField
                   label="Modal başlığı"
                   value={form.title}
-                  onChange={(v) => setForm((f) => ({ ...f, title: v }))}
+                  onChange={(v) => { setForm((f) => ({ ...f, title: v })); setIsDirty(true); }}
                   autoComplete="off"
                 />
                 <TextField
                   label="Kaydet butonu yazısı"
                   value={form.submitLabel}
-                  onChange={(v) => setForm((f) => ({ ...f, submitLabel: v }))}
+                  onChange={(v) => { setForm((f) => ({ ...f, submitLabel: v })); setIsDirty(true); }}
                   autoComplete="off"
                 />
               </FormLayout.Group>
