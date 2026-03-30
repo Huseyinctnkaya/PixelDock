@@ -141,6 +141,162 @@
           group.appendChild(zone);
           break;
         }
+
+        case 'color': {
+          var colorInput = el('input', {
+            className: 'pixeldock-input pixeldock-color-input',
+            type: 'color',
+            name: 'properties[' + block.label + ']',
+            value: block.defaultValue || '#000000',
+          });
+          if (block.required) colorInput.setAttribute('required', 'required');
+          group.appendChild(colorInput);
+          break;
+        }
+
+        case 'number': {
+          var numInput = el('input', {
+            className: 'pixeldock-input',
+            type: 'number',
+            name: 'properties[' + block.label + ']',
+            placeholder: block.placeholder || '',
+          });
+          if (block.min) numInput.setAttribute('min', block.min);
+          if (block.max) numInput.setAttribute('max', block.max);
+          if (block.required) numInput.setAttribute('required', 'required');
+          group.appendChild(numInput);
+          break;
+        }
+
+        case 'date': {
+          var dateInput = el('input', {
+            className: 'pixeldock-input',
+            type: 'date',
+            name: 'properties[' + block.label + ']',
+          });
+          if (block.required) dateInput.setAttribute('required', 'required');
+          group.appendChild(dateInput);
+          break;
+        }
+
+        case 'email': {
+          var emailInput = el('input', {
+            className: 'pixeldock-input',
+            type: 'email',
+            name: 'properties[' + block.label + ']',
+            placeholder: block.placeholder || 'ornek@mail.com',
+          });
+          if (block.required) emailInput.setAttribute('required', 'required');
+          group.appendChild(emailInput);
+          break;
+        }
+
+        case 'tel': {
+          var telInput = el('input', {
+            className: 'pixeldock-input',
+            type: 'tel',
+            name: 'properties[' + block.label + ']',
+            placeholder: block.placeholder || '+90 5xx xxx xx xx',
+          });
+          if (block.required) telInput.setAttribute('required', 'required');
+          group.appendChild(telInput);
+          break;
+        }
+
+        case 'url': {
+          var urlInput = el('input', {
+            className: 'pixeldock-input',
+            type: 'url',
+            name: 'properties[' + block.label + ']',
+            placeholder: block.placeholder || 'https://',
+          });
+          if (block.required) urlInput.setAttribute('required', 'required');
+          group.appendChild(urlInput);
+          break;
+        }
+
+        case 'checkbox': {
+          var cbHidden = el('input', { type: 'hidden', 'data-field': block.name, value: 'Hayır' });
+          form.appendChild(cbHidden);
+          var cbWrapper = el('label', { className: 'pixeldock-checkbox-label' });
+          var cbInput = el('input', { type: 'checkbox', className: 'pixeldock-checkbox', 'data-field-checkbox': block.name });
+          cbWrapper.appendChild(cbInput);
+          cbWrapper.appendChild(document.createTextNode(' ' + (block.placeholder || block.label)));
+          group.appendChild(cbWrapper);
+          break;
+        }
+
+        case 'checkbox_group': {
+          var cgHidden = el('input', { type: 'hidden', 'data-field': block.name, value: '' });
+          form.appendChild(cgHidden);
+          var cgOptions = (block.options || '').split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+          var cgWrapper = el('div', { className: 'pixeldock-checkbox-group', 'data-group': block.name });
+          cgOptions.forEach(function(opt) {
+            var optLabel = el('label', { className: 'pixeldock-checkbox-label' });
+            var optInput = el('input', { type: 'checkbox', className: 'pixeldock-checkbox', value: opt, 'data-group-item': block.name });
+            optLabel.appendChild(optInput);
+            optLabel.appendChild(document.createTextNode(' ' + opt));
+            cgWrapper.appendChild(optLabel);
+          });
+          group.appendChild(cgWrapper);
+          break;
+        }
+
+        case 'divider': {
+          group.removeChild(label);
+          var hr = el('hr', { className: 'pixeldock-divider' });
+          group.appendChild(hr);
+          break;
+        }
+
+        case 'info': {
+          group.removeChild(label);
+          var infoBox = el('div', { className: 'pixeldock-info-box', textContent: block.label });
+          group.appendChild(infoBox);
+          break;
+        }
+
+        case 'rating': {
+          var ratingHidden = el('input', { type: 'hidden', 'data-field': block.name, value: block.defaultValue || '0' });
+          form.appendChild(ratingHidden);
+          var ratingWidget = el('div', { className: 'pixeldock-rating', 'data-rating-field': block.name });
+          for (var ri = 1; ri <= 5; ri++) {
+            var star = el('button', {
+              type: 'button',
+              className: 'pixeldock-star' + (ri <= Number(block.defaultValue || 0) ? ' is-active' : ''),
+              'data-value': String(ri),
+              textContent: '★',
+            });
+            ratingWidget.appendChild(star);
+          }
+          group.appendChild(ratingWidget);
+          break;
+        }
+
+        case 'multi_file': {
+          var mfZone = el('div', { className: 'pixeldock-upload-zone pixeldock-multi-zone', id: 'pixeldock-drop-mf-' + blockId });
+          var mfInput = el('input', {
+            className: 'pixeldock-file-input',
+            type: 'file',
+            accept: block.accept || '.png,.jpg,.jpeg',
+            tabindex: '-1',
+            multiple: 'multiple',
+          });
+          if (block.required) mfInput.setAttribute('required', 'required');
+          mfInput.dataset.fieldName = block.name;
+          mfInput.dataset.multiFile = 'true';
+          var mfPlaceholder = el('div', { className: 'pixeldock-upload-placeholder' }, [
+            createUploadIcon(),
+            el('span', { textContent: 'Çoklu dosya — ' + (block.accept || '.png,.jpg').replace(/\./g,'').toUpperCase() }),
+          ]);
+          var mfPreview = el('div', { className: 'pixeldock-multi-preview' });
+          mfPreview.hidden = true;
+          mfZone.appendChild(mfInput);
+          mfZone.appendChild(mfPlaceholder);
+          mfZone.appendChild(mfPreview);
+          group.appendChild(mfZone);
+          break;
+        }
       }
 
       form.appendChild(group);
@@ -242,6 +398,85 @@
       }
     });
 
+    // Checkbox (single)
+    form.querySelectorAll('input[data-field-checkbox]').forEach(function(cb) {
+      var field = cb.dataset.fieldCheckbox;
+      var hidden = form.querySelector('input[data-field="' + field + '"]');
+      cb.addEventListener('change', function() {
+        if (hidden) hidden.value = cb.checked ? 'Evet' : 'Hayır';
+      });
+    });
+
+    // Checkbox group
+    form.querySelectorAll('.pixeldock-checkbox-group').forEach(function(group) {
+      var field = group.dataset.group;
+      var hidden = form.querySelector('input[data-field="' + field + '"]');
+      group.querySelectorAll('input[type="checkbox"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+          var checked = Array.from(group.querySelectorAll('input[type="checkbox"]:checked')).map(function(c) { return c.value; });
+          if (hidden) hidden.value = checked.join(', ');
+        });
+      });
+    });
+
+    // Rating stars
+    form.querySelectorAll('.pixeldock-rating').forEach(function(widget) {
+      var field = widget.dataset.ratingField;
+      var hidden = form.querySelector('input[data-field="' + field + '"]');
+      var stars = widget.querySelectorAll('.pixeldock-star');
+      stars.forEach(function(star) {
+        star.addEventListener('click', function() {
+          var val = Number(star.dataset.value);
+          if (hidden) hidden.value = String(val);
+          stars.forEach(function(s) {
+            s.classList.toggle('is-active', Number(s.dataset.value) <= val);
+          });
+        });
+        star.addEventListener('mouseover', function() {
+          var val = Number(star.dataset.value);
+          stars.forEach(function(s) {
+            s.classList.toggle('is-hover', Number(s.dataset.value) <= val);
+          });
+        });
+        star.addEventListener('mouseout', function() {
+          stars.forEach(function(s) { s.classList.remove('is-hover'); });
+        });
+      });
+    });
+
+    // Multi-file zone
+    form.querySelectorAll('.pixeldock-multi-zone').forEach(function(mfZone) {
+      var mfInput = mfZone.querySelector('.pixeldock-file-input');
+      var mfPlaceholder = mfZone.querySelector('.pixeldock-upload-placeholder');
+      var mfPreview = mfZone.querySelector('.pixeldock-multi-preview');
+
+      function showMultiPreview(files) {
+        mfPreview.innerHTML = '';
+        Array.from(files).forEach(function(file) {
+          var nameEl = el('span', { className: 'pixeldock-multi-file-name', textContent: file.name });
+          mfPreview.appendChild(nameEl);
+        });
+        mfPlaceholder.hidden = true;
+        mfPreview.hidden = false;
+      }
+
+      if (mfInput) {
+        mfInput.addEventListener('change', function() {
+          if (mfInput.files && mfInput.files.length) showMultiPreview(mfInput.files);
+        });
+        mfZone.addEventListener('dragover', function(e) { e.preventDefault(); mfZone.classList.add('is-dragover'); });
+        mfZone.addEventListener('dragleave', function() { mfZone.classList.remove('is-dragover'); });
+        mfZone.addEventListener('drop', function(e) {
+          e.preventDefault();
+          mfZone.classList.remove('is-dragover');
+          if (e.dataTransfer.files.length) {
+            mfInput.files = e.dataTransfer.files;
+            showMultiPreview(e.dataTransfer.files);
+          }
+        });
+      }
+    });
+
     // Modal open/close
     trigger.addEventListener('click', function () { openModal(); });
 
@@ -283,6 +518,17 @@
       saveBtn.textContent = 'Yükleniyor...';
       hideStatus();
 
+      // Collect multi-file inputs
+      var multiFileInputs = form.querySelectorAll('.pixeldock-file-input[data-multi-file="true"]');
+      var multiFileUploads = [];
+      multiFileInputs.forEach(function(mfInput) {
+        if (mfInput.files && mfInput.files.length) {
+          Array.from(mfInput.files).forEach(function(file) {
+            multiFileUploads.push({ file: file, fieldName: mfInput.dataset.fieldName });
+          });
+        }
+      });
+
       var uploadPromise = selectedFile
         ? (function () {
             var fd = new FormData();
@@ -293,8 +539,20 @@
           })()
         : Promise.resolve('');
 
-      uploadPromise
-        .then(function (fileUrl) {
+      var multiUploadPromise = multiFileUploads.length
+        ? Promise.all(multiFileUploads.map(function(item) {
+            var fd = new FormData();
+            fd.append('file', item.file);
+            return fetch(uploadUrl, { method: 'POST', body: fd })
+              .then(function(r) { return r.ok ? r.json() : { fileUrl: '' }; })
+              .then(function(d) { return { fieldName: item.fieldName, url: d.fileUrl || '' }; });
+          }))
+        : Promise.resolve([]);
+
+      Promise.all([uploadPromise, multiUploadPromise])
+        .then(function (results) {
+          var fileUrl = results[0];
+          var multiResults = results[1];
           var properties = {};
 
           // Collect toggle_group values
@@ -313,6 +571,18 @@
             var fileBlock = config.blocks.find(function (b) { return b.type === 'file'; });
             if (fileBlock) properties[fileBlock.label] = fileUrl;
           }
+
+          // Multi-file results grouped by fieldName
+          multiResults.forEach(function(item) {
+            var mfBlock = config.blocks.find(function(b) { return b.name === item.fieldName; });
+            if (mfBlock && item.url) {
+              if (properties[mfBlock.label]) {
+                properties[mfBlock.label] += ', ' + item.url;
+              } else {
+                properties[mfBlock.label] = item.url;
+              }
+            }
+          });
 
           return fetch('/cart/add.js', {
             method: 'POST',

@@ -330,3 +330,102 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+/* Color input */
+.pixeldock-color-input {
+  width: 56px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  background: none;
+}
+
+/* Checkbox */
+.pixeldock-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+
+.pixeldock-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #C84B11;
+}
+
+.pixeldock-checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Divider */
+.pixeldock-divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 4px 0;
+}
+
+/* Info box */
+.pixeldock-info-box {
+  background: #f3f4f6;
+  border-left: 3px solid #C84B11;
+  border-radius: 4px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* Rating */
+.pixeldock-rating {
+  display: flex;
+  gap: 4px;
+}
+
+.pixeldock-star {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #d1d5db;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.1s, transform 0.1s;
+  line-height: 1;
+}
+
+.pixeldock-star.is-active,
+.pixeldock-star.is-hover {
+  color: #f59e0b;
+}
+
+.pixeldock-star:hover {
+  transform: scale(1.15);
+}
+
+/* Multi-file preview */
+.pixeldock-multi-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+}
+
+.pixeldock-multi-file-name {
+  font-size: 12px;
+  color: #374151;
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: 4px 8px;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

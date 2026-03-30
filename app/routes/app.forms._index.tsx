@@ -20,7 +20,7 @@ import { useEffect, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type BlockType = "toggle_group" | "input" | "select" | "file" | "textarea";
+export type BlockType = "toggle_group" | "input" | "select" | "file" | "textarea" | "color" | "number" | "date" | "email" | "tel" | "checkbox" | "checkbox_group" | "divider" | "info" | "multi_file" | "rating" | "url";
 
 export type FormBlock = {
   id: string;
@@ -32,6 +32,8 @@ export type FormBlock = {
   options?: string;
   defaultValue?: string;
   accept?: string;
+  min?: string;
+  max?: string;
 };
 
 export type FormStatus = "active" | "draft";

@@ -33,7 +33,7 @@ import type { FormsRegistry, FormEntry } from "./app.forms._index";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type BlockType = "toggle_group" | "input" | "select" | "file" | "textarea";
+export type BlockType = "toggle_group" | "input" | "select" | "file" | "textarea" | "color" | "number" | "date" | "email" | "tel" | "checkbox" | "checkbox_group" | "divider" | "info" | "multi_file" | "rating" | "url";
 
 export type FormBlock = {
   id: string;
@@ -45,6 +45,8 @@ export type FormBlock = {
   options?: string;
   defaultValue?: string;
   accept?: string;
+  min?: string;
+  max?: string;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -58,6 +60,18 @@ const BLOCK_TYPE_LABELS: Record<BlockType, string> = {
   input: "Metin Girişi",
   textarea: "Uzun Metin",
   file: "Dosya Yükleme",
+  color: "Renk Seçici",
+  number: "Sayı / Ölçü",
+  date: "Tarih",
+  email: "E-posta",
+  tel: "Telefon",
+  checkbox: "Onay Kutusu",
+  checkbox_group: "Çoklu Seçim",
+  divider: "Bölücü",
+  info: "Bilgi Metni",
+  multi_file: "Çoklu Dosya",
+  rating: "Derecelendirme",
+  url: "URL",
 };
 
 const BLOCK_TYPE_OPTIONS = (Object.keys(BLOCK_TYPE_LABELS) as BlockType[]).map(
@@ -241,7 +255,9 @@ export default function FormEditor() {
       ...(newBlockType === "toggle_group" || newBlockType === "select"
         ? { options: "Seçenek 1, Seçenek 2" }
         : {}),
-      ...(newBlockType === "file" ? { accept: ".png,.jpg,.jpeg" } : {}),
+      ...(newBlockType === "file" || newBlockType === "multi_file" ? { accept: ".png,.jpg,.jpeg" } : {}),
+      ...(newBlockType === "rating" ? { defaultValue: "0" } : {}),
+      ...(newBlockType === "checkbox_group" ? { options: "Seçenek 1, Seçenek 2" } : {}),
     };
     setForm((f) => ({ ...f, blocks: [...f.blocks, newBlock] }));
     setAddModalOpen(false);
@@ -452,7 +468,7 @@ function BlockRow({
   const [expanded, setExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
-  const hasOptions = block.type === "toggle_group" || block.type === "select";
+  const hasOptions = block.type === "toggle_group" || block.type === "select" || block.type === "checkbox_group";
 
   return (
     <div
@@ -616,6 +632,58 @@ function BlockRow({
                     onChange={(v) => onUpdate(block.id, { accept: v })}
                     autoComplete="off"
                     helpText="Örn: .png,.jpg,.jpeg,.svg"
+                  />
+                )}
+
+                {(block.type === "multi_file") && (
+                  <TextField
+                    label="Kabul edilen dosya tipleri"
+                    value={block.accept ?? ".png,.jpg,.jpeg"}
+                    onChange={(v) => onUpdate(block.id, { accept: v })}
+                    autoComplete="off"
+                    helpText="Örn: .png,.jpg,.jpeg,.svg"
+                  />
+                )}
+
+                {block.type === "number" && (
+                  <FormLayout.Group>
+                    <TextField
+                      label="Min değer"
+                      value={block.min ?? ""}
+                      onChange={(v) => onUpdate(block.id, { min: v })}
+                      autoComplete="off"
+                      type="number"
+                    />
+                    <TextField
+                      label="Max değer"
+                      value={block.max ?? ""}
+                      onChange={(v) => onUpdate(block.id, { max: v })}
+                      autoComplete="off"
+                      type="number"
+                    />
+                  </FormLayout.Group>
+                )}
+
+                {block.type === "info" && (
+                  <TextField
+                    label="Bilgi metni içeriği"
+                    value={block.label}
+                    onChange={(v) => onUpdate(block.id, { label: v })}
+                    autoComplete="off"
+                    multiline={3}
+                    helpText="Müşteriye gösterilecek açıklama metni"
+                  />
+                )}
+
+                {block.type === "rating" && (
+                  <TextField
+                    label="Varsayılan puan (0 = seçilmemiş)"
+                    value={block.defaultValue ?? "0"}
+                    onChange={(v) => onUpdate(block.id, { defaultValue: v })}
+                    autoComplete="off"
+                    type="number"
+                    min="0"
+                    max="5"
                   />
                 )}
 
