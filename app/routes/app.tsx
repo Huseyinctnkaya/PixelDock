@@ -21,7 +21,7 @@ export default function App() {
       <PolarisProvider i18n={enTranslations}>
         <s-app-nav>
           <s-link href="/app/images">Image Library</s-link>
-          <s-link href="/app/builder">Form Builder</s-link>
+          <s-link href="/app/forms">Formlar</s-link>
           <s-link href="/app/settings">Ayarlar</s-link>
         </s-app-nav>
         <Outlet />

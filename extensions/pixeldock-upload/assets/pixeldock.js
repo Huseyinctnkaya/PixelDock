@@ -331,7 +331,8 @@
   // ─── Init ─────────────────────────────────────────────────────────────────
   function initBlock(block) {
     var dialog = block.querySelector('.pixeldock-dialog');
-    var configUrl = block.dataset.proxyUrl.replace('/upload', '/config');
+    var formId = block.dataset.formId;
+    var configUrl = block.dataset.proxyUrl.replace('/upload', '/config') + (formId ? '?form_id=' + formId : '');
 
     // Fetch config and build form
     fetchConfig(configUrl).then(function (config) {
