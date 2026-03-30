@@ -429,3 +429,39 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* ─── Inline mode ─────────────────────────────────────────────────────────── */
+
+.pixeldock-inline-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+  margin-top: 10px;
+}
+
+.pixeldock-inline-panel > div {
+  overflow: hidden;
+}
+
+.pixeldock-inline-content {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.pixeldock-inline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.pixeldock-inline-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}

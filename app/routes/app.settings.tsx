@@ -63,9 +63,10 @@ export const SETTINGS_KEY = "app_settings";
 
 export type AppSettings = {
   maxFileSizeMb: number;
-  acceptedTypes: string[]; // ["image/png", "image/jpeg", "image/webp"]
+  acceptedTypes: string[];
   triggerLabel: string;
   triggerColor: string;
+  displayMode: "modal" | "inline";
 };
 
 export const DEFAULT_APP_SETTINGS: AppSettings = {
@@ -73,6 +74,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   acceptedTypes: ["image/png", "image/jpeg"],
   triggerLabel: "Patch Ekle",
   triggerColor: "#C84B11",
+  displayMode: "modal",
 };
 
 const TYPE_OPTIONS = [
@@ -110,6 +112,7 @@ export async function fetchAppSettings(
         : DEFAULT_APP_SETTINGS.acceptedTypes,
       triggerLabel: parsed.triggerLabel ?? DEFAULT_APP_SETTINGS.triggerLabel,
       triggerColor: parsed.triggerColor ?? DEFAULT_APP_SETTINGS.triggerColor,
+      displayMode: parsed.displayMode ?? DEFAULT_APP_SETTINGS.displayMode,
     };
   } catch {
     return DEFAULT_APP_SETTINGS;
@@ -134,12 +137,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const acceptedTypes = form.getAll("acceptedTypes") as string[];
   const triggerLabel = (form.get("triggerLabel") as string)?.trim() || DEFAULT_APP_SETTINGS.triggerLabel;
   const triggerColor = (form.get("triggerColor") as string)?.trim() || DEFAULT_APP_SETTINGS.triggerColor;
+  const displayMode = (form.get("displayMode") as string) === "inline" ? "inline" : "modal";
 
   const settings: AppSettings = {
     maxFileSizeMb,
     acceptedTypes: acceptedTypes.length ? acceptedTypes : DEFAULT_APP_SETTINGS.acceptedTypes,
     triggerLabel,
     triggerColor,
+    displayMode,
   };
 
   const appRes = await admin.graphql(`#graphql
@@ -189,6 +194,7 @@ export default function Settings() {
   const [acceptedTypes, setAcceptedTypes] = useState<string[]>(settings.acceptedTypes);
   const [triggerLabel, setTriggerLabel] = useState(settings.triggerLabel);
   const [triggerColor, setTriggerColor] = useState(settings.triggerColor);
+  const [displayMode, setDisplayMode] = useState<string[]>([settings.displayMode]);
   const [colorHsb, setColorHsb] = useState<HSB>(() => hexToHsb(settings.triggerColor));
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
@@ -206,6 +212,7 @@ export default function Settings() {
     acceptedTypes.forEach((t) => form.append("acceptedTypes", t));
     form.append("triggerLabel", triggerLabel);
     form.append("triggerColor", triggerColor);
+    form.append("displayMode", displayMode[0] ?? "modal");
     fetcher.submit(form, { method: "post" });
   };
 
@@ -248,6 +255,23 @@ export default function Settings() {
                     onChange={setTriggerLabel}
                     autoComplete="off"
                     name="triggerLabel"
+                  />
+                  <ChoiceList
+                    title="Form açılış modu"
+                    choices={[
+                      {
+                        label: "Modal (Overlay)",
+                        value: "modal",
+                        helpText: "Buton tıklandığında ekranın üstünde bir modal pencere açılır.",
+                      },
+                      {
+                        label: "Inline (Sayfa içi)",
+                        value: "inline",
+                        helpText: "Form, butonun hemen altında kayarak açılır. Sayfadan çıkılmaz.",
+                      },
+                    ]}
+                    selected={displayMode}
+                    onChange={setDisplayMode}
                   />
                   <Box>
                     <BlockStack gap="100">

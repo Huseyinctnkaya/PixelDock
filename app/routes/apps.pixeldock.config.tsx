@@ -64,6 +64,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     blocks: form.blocks,
     triggerLabel: appSettings.triggerLabel,
     triggerColor: appSettings.triggerColor,
+    displayMode: appSettings.displayMode,
   };
 
   return corsJson({ config });

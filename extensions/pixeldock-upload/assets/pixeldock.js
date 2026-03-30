@@ -477,28 +477,33 @@
       }
     });
 
-    // Modal open/close
-    trigger.addEventListener('click', function () { openModal(); });
+    // Modal open/close (skipped in inline mode — handled by initInlineMode)
+    var isInline = config.displayMode === 'inline';
 
     function openModal() {
+      if (isInline) { if (block._openModal) block._openModal(); return; }
       modal.classList.add('is-open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
     }
 
     function closeModal() {
+      if (isInline) { if (block._closeModal) block._closeModal(); hideStatus(); return; }
       modal.classList.remove('is-open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
       hideStatus();
     }
 
-    overlay.addEventListener('click', closeModal);
-    closeBtn.addEventListener('click', closeModal);
-    cancelBtn.addEventListener('click', closeModal);
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
-    });
+    if (!isInline) {
+      trigger.addEventListener('click', function () { openModal(); });
+      if (overlay) overlay.addEventListener('click', closeModal);
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && modal && modal.classList.contains('is-open')) closeModal();
+      });
+    }
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
 
     // Status helpers
     function showStatus(msg, type) {
@@ -607,13 +612,71 @@
     });
   }
 
+  // ─── Inline mode ──────────────────────────────────────────────────────────
+  function initInlineMode(block, config) {
+    var trigger = block.querySelector('.pixeldock-trigger');
+
+    // Build panel
+    var panel = document.createElement('div');
+    panel.className = 'pixeldock-inline-panel';
+
+    var panelInner = document.createElement('div');
+
+    var panelContent = document.createElement('div');
+    panelContent.className = 'pixeldock-inline-content';
+
+    // Header
+    var header = document.createElement('div');
+    header.className = 'pixeldock-inline-header';
+    var titleSpan = document.createElement('span');
+    titleSpan.className = 'pixeldock-inline-title';
+    titleSpan.textContent = config.title || 'Patch Ayarları';
+    var closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'pixeldock-dialog__close';
+    closeBtn.setAttribute('aria-label', 'Kapat');
+    closeBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+    header.appendChild(titleSpan);
+    header.appendChild(closeBtn);
+
+    var form = buildForm(config, block.dataset.blockId);
+    panelContent.appendChild(header);
+    panelContent.appendChild(form);
+    panelInner.appendChild(panelContent);
+    panel.appendChild(panelInner);
+
+    trigger.parentNode.insertBefore(panel, trigger.nextSibling);
+
+    var isOpen = false;
+    function openPanel() {
+      panel.style.gridTemplateRows = '1fr';
+      isOpen = true;
+    }
+    function closePanel() {
+      panel.style.gridTemplateRows = '0fr';
+      isOpen = false;
+    }
+
+    trigger.addEventListener('click', function() {
+      if (isOpen) closePanel(); else openPanel();
+    });
+    closeBtn.addEventListener('click', closePanel);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && isOpen) closePanel();
+    });
+
+    // Override wireForm's modal open/close with inline panel equivalents
+    block._openModal = openPanel;
+    block._closeModal = closePanel;
+
+    wireForm(form, block, config);
+  }
+
   // ─── Init ─────────────────────────────────────────────────────────────────
   function initBlock(block) {
-    var dialog = block.querySelector('.pixeldock-dialog');
     var formId = block.dataset.formId;
     var configUrl = block.dataset.proxyUrl.replace('/upload', '/config') + (formId ? '?form_id=' + formId : '');
 
-    // Fetch config and build form
     fetchConfig(configUrl).then(function (config) {
       if (!config) {
         console.warn('[PixelDock] Form config alınamadı.');
@@ -630,16 +693,23 @@
         }
       }
 
-      // Set modal title
-      var titleEl = block.querySelector('.pixeldock-dialog__title');
-      if (titleEl) titleEl.textContent = config.title || 'Patch Ayarları';
+      if (config.displayMode === 'inline') {
+        // Hide the default modal structure
+        var modal = block.querySelector('.pixeldock-modal');
+        if (modal) modal.style.display = 'none';
 
-      // Build and inject form
-      var form = buildForm(config, block.dataset.blockId);
-      dialog.appendChild(form);
+        initInlineMode(block, config);
+      } else {
+        // Modal mode (default)
+        var titleEl = block.querySelector('.pixeldock-dialog__title');
+        if (titleEl) titleEl.textContent = config.title || 'Patch Ayarları';
 
-      // Wire interactions
-      wireForm(form, block, config);
+        var dialog = block.querySelector('.pixeldock-dialog');
+        var form = buildForm(config, block.dataset.blockId);
+        dialog.appendChild(form);
+
+        wireForm(form, block, config);
+      }
     });
   }
 
