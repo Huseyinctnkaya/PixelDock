@@ -158,16 +158,16 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Response("Form bulunamadı", { status: 404 });
   }
 
-  // Fetch metafield definitions for the metafield picker
+  // Fetch ALL metafield definitions from the store for the metafield picker
   const metaRes = await admin.graphql(`#graphql
-    query MetafieldDefs {
-      productDefs: metafieldDefinitions(ownerType: PRODUCT, first: 50, namespace: "pixeldock") {
+    query AllMetafieldDefs {
+      productDefs: metafieldDefinitions(ownerType: PRODUCT, first: 100) {
         nodes { namespace key name }
       }
-      customerDefs: metafieldDefinitions(ownerType: CUSTOMER, first: 50, namespace: "pixeldock") {
+      customerDefs: metafieldDefinitions(ownerType: CUSTOMER, first: 100) {
         nodes { namespace key name }
       }
-      orderDefs: metafieldDefinitions(ownerType: ORDER, first: 50, namespace: "pixeldock") {
+      orderDefs: metafieldDefinitions(ownerType: ORDER, first: 100) {
         nodes { namespace key name }
       }
     }
@@ -181,9 +181,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   };
 
   const metafieldDefs = [
-    ...(metaData.data?.productDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Ürün`, value: `${n.namespace}.${n.key}` })),
-    ...(metaData.data?.customerDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Müşteri`, value: `${n.namespace}.${n.key}` })),
-    ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Sipariş`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.productDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Ürün)`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.customerDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Müşteri)`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Sipariş)`, value: `${n.namespace}.${n.key}` })),
   ];
 
   return { form, metafieldDefs };
@@ -753,8 +753,8 @@ function BlockRow({
                     onChange={(v) => onUpdate(block.id, { metafieldKey: v || undefined })}
                     helpText={
                       block.metafieldKey
-                        ? `Form gönderiminde bu değer "${block.metafieldKey}" metafield'ına yazılır.`
-                        : "Bu alanı bir Shopify metafield'ına bağlamak için seçin."
+                        ? `Form gönderiminde değer "${block.metafieldKey}" metafield'ına yazılır.`
+                        : "Shopify Admin → Ayarlar → Özel veri'den metafield tanımı oluşturun, ardından burada seçin."
                     }
                   />
                 )}
