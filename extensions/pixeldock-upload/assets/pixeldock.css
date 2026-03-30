@@ -1,5 +1,7 @@
 /* PixelDock — Theme Extension Styles */
 
+/* ─── Trigger Button ──────────────────────────────────────────────────────── */
+
 .pixeldock-trigger {
   display: inline-flex;
   align-items: center;
@@ -13,20 +15,28 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
+  font-family: inherit;
 }
 
 .pixeldock-trigger:hover {
   background: var(--pd-trigger-hover, #b04010);
 }
 
-/* Modal */
+/* ─── Modal ───────────────────────────────────────────────────────────────── */
+
 .pixeldock-modal {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 9999;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+}
+
+@media (min-width: 600px) {
+  .pixeldock-modal {
+    align-items: center;
+  }
 }
 
 .pixeldock-modal.is-open {
@@ -36,66 +46,161 @@
 .pixeldock-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
 }
 
 .pixeldock-dialog {
   position: relative;
   background: #fff;
-  border-radius: 20px;
+  border-radius: 24px 24px 0 0;
   width: 100%;
-  max-width: 480px;
-  margin: 16px;
-  padding: 28px 24px 24px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
-  max-height: calc(100vh - 32px);
+  max-width: 520px;
+  padding: 0;
+  box-shadow: 0 -4px 40px rgba(0, 0, 0, 0.15);
+  max-height: 90vh;
   overflow-y: auto;
+  animation: pd-slide-up 0.25s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+@media (min-width: 600px) {
+  .pixeldock-dialog {
+    border-radius: 20px;
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: pd-scale-in 0.2s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+}
+
+@keyframes pd-slide-up {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes pd-scale-in {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 .pixeldock-dialog__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #F3F4F6;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+  border-radius: 24px 24px 0 0;
+}
+
+@media (min-width: 600px) {
+  .pixeldock-dialog__header {
+    border-radius: 20px 20px 0 0;
+  }
 }
 
 .pixeldock-dialog__title {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
-  color: #111;
+  color: #111827;
+  letter-spacing: -0.01em;
 }
 
 .pixeldock-dialog__close {
-  background: none;
+  background: #F3F4F6;
   border: none;
   cursor: pointer;
   color: #6B7280;
-  padding: 4px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  border-radius: 4px;
-  transition: color 0.15s;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
 }
 
 .pixeldock-dialog__close:hover {
-  color: #111;
+  background: #E5E7EB;
+  color: #111827;
 }
 
-/* Field groups */
+/* ─── Form body ───────────────────────────────────────────────────────────── */
+
+.pixeldock-form {
+  padding: 20px 24px 8px;
+}
+
+/* ─── Field groups ────────────────────────────────────────────────────────── */
+
 .pixeldock-field-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .pixeldock-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: #6B7280;
-  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #374151;
+  margin: 0 0 8px;
   text-transform: uppercase;
+  display: block;
 }
 
-/* Toggle buttons */
+/* ─── Text inputs ─────────────────────────────────────────────────────────── */
+
+.pixeldock-input,
+.pixeldock-textarea,
+.pixeldock-select {
+  width: 100%;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 14px;
+  color: #111827;
+  font-family: inherit;
+  box-sizing: border-box;
+  background: #FAFAFA;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+}
+
+.pixeldock-input::placeholder,
+.pixeldock-textarea::placeholder {
+  color: #9CA3AF;
+}
+
+.pixeldock-input:focus,
+.pixeldock-textarea:focus,
+.pixeldock-select:focus {
+  outline: none;
+  border-color: #C84B11;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(200, 75, 17, 0.1);
+}
+
+.pixeldock-textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.5;
+}
+
+.pixeldock-select {
+  appearance: none;
+  background-color: #FAFAFA;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239CA3AF' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* ─── Toggle buttons ──────────────────────────────────────────────────────── */
+
 .pixeldock-toggle-group {
   display: flex;
   gap: 8px;
@@ -104,68 +209,73 @@
 
 .pixeldock-toggle-group--half {
   gap: 0;
+  background: #F3F4F6;
+  border-radius: 12px;
+  padding: 3px;
 }
 
 .pixeldock-toggle {
-  background: #fff;
+  background: transparent;
   border: 1.5px solid #E5E7EB;
   border-radius: 10px;
-  padding: 10px 18px;
-  font-size: 14px;
+  padding: 9px 16px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   color: #374151;
   transition: all 0.15s;
+  font-family: inherit;
 }
 
 .pixeldock-toggle:hover {
   border-color: #C84B11;
   color: #C84B11;
+  background: rgba(200, 75, 17, 0.04);
 }
 
 .pixeldock-toggle.is-active {
   background: #C84B11;
   border-color: #C84B11;
   color: #fff;
+  box-shadow: 0 2px 6px rgba(200, 75, 17, 0.3);
 }
 
-/* Half-width group (Sol / Sağ, Yuvarlak / Dikdörtgen) */
+/* Half-width (2-option) group */
 .pixeldock-toggle-group--half .pixeldock-toggle {
   flex: 1;
-  border-radius: 0;
-}
-
-.pixeldock-toggle-group--half .pixeldock-toggle:first-child {
-  border-radius: 10px 0 0 10px;
-  border-right-width: 0.75px;
-}
-
-.pixeldock-toggle-group--half .pixeldock-toggle:last-child {
-  border-radius: 0 10px 10px 0;
-  border-left-width: 0.75px;
+  border: none;
+  border-radius: 9px;
+  text-align: center;
 }
 
 .pixeldock-toggle-group--half .pixeldock-toggle.is-active {
-  border-color: #C84B11;
-  z-index: 1;
-  position: relative;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
 }
 
-/* Upload zone */
+/* ─── Upload zone ─────────────────────────────────────────────────────────── */
+
 .pixeldock-upload-zone {
-  border: 2px dashed #E5E7EB;
-  border-radius: 14px;
-  padding: 28px 16px;
+  border: 2px dashed #D1D5DB;
+  border-radius: 16px;
+  padding: 32px 20px;
   text-align: center;
   cursor: pointer;
   position: relative;
   background: #FAFAFA;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.pixeldock-upload-zone:hover {
+  border-color: #C84B11;
+  background: #FEF6F2;
 }
 
 .pixeldock-upload-zone.is-dragover {
   border-color: #C84B11;
   background: #FEF6F2;
+  transform: scale(1.01);
 }
 
 .pixeldock-file-input {
@@ -182,209 +292,128 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  color: #9CA3AF;
-  font-size: 13px;
   pointer-events: none;
+}
+
+.pixeldock-upload-placeholder .pd-upload-icon {
+  width: 44px;
+  height: 44px;
+  background: #F3F4F6;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixeldock-upload-placeholder .pd-upload-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.pixeldock-upload-placeholder .pd-upload-hint {
+  font-size: 12px;
+  color: #9CA3AF;
 }
 
 .pixeldock-upload-preview {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   pointer-events: none;
 }
 
 .pixeldock-preview-img {
-  max-height: 80px;
-  max-width: 200px;
-  border-radius: 8px;
+  max-height: 100px;
+  max-width: 220px;
+  border-radius: 10px;
   object-fit: contain;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .pixeldock-preview-name {
   font-size: 12px;
+  font-weight: 500;
   color: #374151;
+  background: #F3F4F6;
+  border-radius: 6px;
+  padding: 4px 10px;
   word-break: break-all;
+  max-width: 100%;
 }
 
-/* Optional note */
-.pixeldock-note-group {
-  margin-bottom: 20px;
-  border-top: 1px solid #F3F4F6;
-  padding-top: 20px;
-}
+/* ─── Checkbox ────────────────────────────────────────────────────────────── */
 
-.pixeldock-note {
-  width: 100%;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
-  color: #374151;
-  resize: vertical;
-  font-family: inherit;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.pixeldock-note:focus {
-  outline: none;
-  border-color: #C84B11;
-}
-
-/* Dynamic field types (input, textarea, select) */
-.pixeldock-input,
-.pixeldock-textarea,
-.pixeldock-select {
-  width: 100%;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 14px;
-  color: #374151;
-  font-family: inherit;
-  box-sizing: border-box;
-  background: #fff;
-  transition: border-color 0.15s;
-}
-
-.pixeldock-input:focus,
-.pixeldock-textarea:focus,
-.pixeldock-select:focus {
-  outline: none;
-  border-color: #C84B11;
-}
-
-.pixeldock-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.pixeldock-select {
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239CA3AF' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-  cursor: pointer;
-}
-
-/* Status */
-.pixeldock-status {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  margin-bottom: 16px;
-}
-
-.pixeldock-status.is-error {
-  background: #FEF2F2;
-  color: #DC2626;
-}
-
-.pixeldock-status.is-success {
-  background: #F0FDF4;
-  color: #16A34A;
-}
-
-/* Footer */
-.pixeldock-form-footer {
-  display: flex;
-  gap: 12px;
-}
-
-.pixeldock-btn {
-  flex: 1;
-  padding: 13px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-family: inherit;
-}
-
-.pixeldock-btn--cancel {
-  background: #fff;
-  border: 1.5px solid #E5E7EB;
-  color: #374151;
-}
-
-.pixeldock-btn--cancel:hover {
-  border-color: #9CA3AF;
-}
-
-.pixeldock-btn--save {
-  background: #C84B11;
-  border: 1.5px solid #C84B11;
-  color: #fff;
-}
-
-.pixeldock-btn--save:hover {
-  background: #b04010;
-  border-color: #b04010;
-}
-
-.pixeldock-btn--save:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* Color input */
-.pixeldock-color-input {
-  width: 56px;
-  height: 40px;
-  padding: 2px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  cursor: pointer;
-  background: none;
-}
-
-/* Checkbox */
 .pixeldock-checkbox-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
   font-size: 14px;
   color: #374151;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.pixeldock-checkbox-label:hover {
+  background: #F9FAFB;
 }
 
 .pixeldock-checkbox {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   cursor: pointer;
   accent-color: #C84B11;
+  flex-shrink: 0;
 }
 
 .pixeldock-checkbox-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 4px;
 }
 
-/* Divider */
+/* ─── Color input ─────────────────────────────────────────────────────────── */
+
+.pixeldock-color-input {
+  width: 52px;
+  height: 40px;
+  padding: 3px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  cursor: pointer;
+  background: none;
+}
+
+/* ─── Divider ─────────────────────────────────────────────────────────────── */
+
 .pixeldock-divider {
   border: none;
-  border-top: 1px solid #e5e7eb;
-  margin: 4px 0;
+  border-top: 1px solid #F3F4F6;
+  margin: 8px 0;
 }
 
-/* Info box */
+/* ─── Info box ────────────────────────────────────────────────────────────── */
+
 .pixeldock-info-box {
-  background: #f3f4f6;
-  border-left: 3px solid #C84B11;
-  border-radius: 4px;
-  padding: 10px 14px;
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 10px;
+  padding: 12px 14px;
   font-size: 13px;
-  color: #6b7280;
+  color: #92400E;
   line-height: 1.5;
 }
 
-/* Rating */
+/* ─── Rating ──────────────────────────────────────────────────────────────── */
+
 .pixeldock-rating {
   display: flex;
   gap: 4px;
@@ -393,44 +422,129 @@
 .pixeldock-star {
   background: none;
   border: none;
-  font-size: 28px;
-  color: #d1d5db;
+  font-size: 30px;
+  color: #E5E7EB;
   cursor: pointer;
-  padding: 0;
-  transition: color 0.1s, transform 0.1s;
+  padding: 0 2px;
+  transition: color 0.12s, transform 0.1s;
   line-height: 1;
 }
 
-.pixeldock-star.is-active,
+.pixeldock-star.is-active {
+  color: #F59E0B;
+}
+
 .pixeldock-star.is-hover {
-  color: #f59e0b;
+  color: #FCD34D;
 }
 
 .pixeldock-star:hover {
-  transform: scale(1.15);
+  transform: scale(1.2);
 }
 
-/* Multi-file preview */
+/* ─── Multi-file preview ──────────────────────────────────────────────────── */
+
 .pixeldock-multi-preview {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px;
+  gap: 6px;
+  padding: 4px;
 }
 
 .pixeldock-multi-file-name {
   font-size: 12px;
+  font-weight: 500;
   color: #374151;
-  background: #f3f4f6;
-  border-radius: 4px;
-  padding: 4px 8px;
-  display: block;
+  background: #F3F4F6;
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* ─── Inline mode ─────────────────────────────────────────────────────────── */
+/* ─── Status ──────────────────────────────────────────────────────────────── */
+
+.pixeldock-status {
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 14px;
+}
+
+.pixeldock-status.is-error {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+}
+
+.pixeldock-status.is-success {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  color: #16A34A;
+}
+
+/* ─── Footer ──────────────────────────────────────────────────────────────── */
+
+.pixeldock-form-footer {
+  display: flex;
+  gap: 10px;
+  padding: 16px 24px 24px;
+  background: #fff;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #F3F4F6;
+}
+
+.pixeldock-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+  border: none;
+}
+
+.pixeldock-btn--cancel {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.pixeldock-btn--cancel:hover {
+  background: #E5E7EB;
+}
+
+.pixeldock-btn--save {
+  background: #C84B11;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(200, 75, 17, 0.3);
+}
+
+.pixeldock-btn--save:hover {
+  background: #b04010;
+  box-shadow: 0 4px 12px rgba(200, 75, 17, 0.35);
+  transform: translateY(-1px);
+}
+
+.pixeldock-btn--save:active {
+  transform: translateY(0);
+}
+
+.pixeldock-btn--save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── Inline panel ────────────────────────────────────────────────────────── */
 
 .pixeldock-inline-panel {
   display: grid;
@@ -444,24 +558,32 @@
 }
 
 .pixeldock-inline-content {
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 16px;
   background: #fff;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  overflow: hidden;
 }
 
 .pixeldock-inline-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  padding: 16px 20px;
+  border-bottom: 1px solid #F3F4F6;
 }
 
 .pixeldock-inline-title {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #111827;
+}
+
+.pixeldock-inline-content .pixeldock-form {
+  padding: 16px 20px 8px;
+}
+
+.pixeldock-inline-content .pixeldock-form-footer {
+  padding: 12px 20px 20px;
+  border-radius: 0 0 14px 14px;
 }

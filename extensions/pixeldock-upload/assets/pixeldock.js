@@ -133,14 +133,17 @@
           if (block.required) fileInput.setAttribute('required', 'required');
           fileInput.dataset.fieldName = block.name;
 
+          var acceptText = (block.accept || '.png,.jpg,.jpeg').split(',').map(function(s){ return s.trim().replace('.','').toUpperCase(); }).join(', ');
+          var iconWrap = el('div', { className: 'pd-upload-icon' }, [createUploadIcon()]);
           var placeholder = el('div', { className: 'pixeldock-upload-placeholder' }, [
-            createUploadIcon(),
-            el('span', { textContent: (block.accept || '.png,.jpg').replace(/\./g, '').toUpperCase() }),
+            iconWrap,
+            el('span', { className: 'pd-upload-title', textContent: 'Dosya seç veya sürükle' }),
+            el('span', { className: 'pd-upload-hint', textContent: acceptText }),
           ]);
 
           var preview = el('div', { className: 'pixeldock-upload-preview' });
-          preview.hidden = true;
-          var previewImg = el('img', { className: 'pixeldock-preview-img', src: '', alt: 'Logo önizleme' });
+          preview.style.display = 'none';
+          var previewImg = el('img', { className: 'pixeldock-preview-img', alt: '' });
           var previewName = el('span', { className: 'pixeldock-preview-name' });
           preview.appendChild(previewImg);
           preview.appendChild(previewName);
@@ -295,9 +298,12 @@
           if (block.required) mfInput.setAttribute('required', 'required');
           mfInput.dataset.fieldName = block.name;
           mfInput.dataset.multiFile = 'true';
+          var mfAcceptText = (block.accept || '.png,.jpg,.jpeg').split(',').map(function(s){ return s.trim().replace('.','').toUpperCase(); }).join(', ');
+          var mfIconWrap = el('div', { className: 'pd-upload-icon' }, [createUploadIcon()]);
           var mfPlaceholder = el('div', { className: 'pixeldock-upload-placeholder' }, [
-            createUploadIcon(),
-            el('span', { textContent: 'Çoklu dosya — ' + (block.accept || '.png,.jpg').replace(/\./g,'').toUpperCase() }),
+            mfIconWrap,
+            el('span', { className: 'pd-upload-title', textContent: 'Birden fazla dosya ekle' }),
+            el('span', { className: 'pd-upload-hint', textContent: mfAcceptText }),
           ]);
           var mfPreview = el('div', { className: 'pixeldock-multi-preview' });
           mfPreview.hidden = true;
@@ -333,11 +339,11 @@
 
   function createUploadIcon() {
     var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '28');
-    svg.setAttribute('height', '32');
-    svg.setAttribute('viewBox', '0 0 28 32');
+    svg.setAttribute('width', '22');
+    svg.setAttribute('height', '22');
+    svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('fill', 'none');
-    svg.innerHTML = '<path d="M16 2H4C3.47 2 2.96 2.21 2.59 2.59C2.21 2.96 2 3.47 2 4V28C2 28.53 2.21 29.04 2.59 29.41C2.96 29.79 3.47 30 4 30H24C24.53 30 25.04 29.79 25.41 29.41C25.79 29.04 26 28.53 26 28V12L16 2Z" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 2V12H26" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 22V17M11.5 19.5H16.5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>';
+    svg.innerHTML = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17 8 12 3 7 8" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>';
     return svg;
   }
 
@@ -401,8 +407,8 @@
         reader.onload = function (e) {
           previewImg.src = e.target.result;
           previewName.textContent = file.name;
-          placeholder.hidden = true;
-          preview.hidden = false;
+          placeholder.style.display = 'none';
+          preview.style.display = 'flex';
         };
         reader.readAsDataURL(file);
       }
@@ -466,8 +472,8 @@
           var nameEl = el('span', { className: 'pixeldock-multi-file-name', textContent: file.name });
           mfPreview.appendChild(nameEl);
         });
-        mfPlaceholder.hidden = true;
-        mfPreview.hidden = false;
+        mfPlaceholder.style.display = 'none';
+        mfPreview.style.display = 'flex';
       }
 
       if (mfInput) {
