@@ -21,6 +21,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   MinusCircleIcon,
+  EmailIcon,
+  QuestionCircleIcon,
 } from "@shopify/polaris-icons";
 import { useState } from "react";
 
@@ -281,12 +283,12 @@ export default function Dashboard() {
         <InlineGrid columns={2} gap="400">
           {[
             {
-              emoji: "✉️",
+              icon: EmailIcon,
               title: "E-posta Desteği",
               desc: "Sorularınız için bize ulaşın, en kısa sürede geri döneceğiz.",
             },
             {
-              emoji: "📖",
+              icon: QuestionCircleIcon,
               title: "Dokümantasyon",
               desc: "Kurulum rehberi ve sık sorulan sorular için dokümanlara göz atın.",
             },
@@ -294,16 +296,15 @@ export default function Dashboard() {
             <Card key={item.title}>
               <BlockStack gap="300">
                 <div style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
+                  width: 40,
+                  height: 40,
+                  borderRadius: 10,
                   background: "#F3F4F6",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 22,
                 }}>
-                  {item.emoji}
+                  <Icon source={item.icon} tone="subdued" />
                 </div>
                 <BlockStack gap="100">
                   <Text as="p" variant="bodyMd" fontWeight="semibold">
