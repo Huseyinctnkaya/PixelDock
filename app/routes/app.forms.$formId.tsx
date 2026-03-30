@@ -95,7 +95,8 @@ async function saveRegistry(
   registry: FormsRegistry,
 ): Promise<{ ok: boolean; error?: string }> {
   const appRes = await admin.graphql(
-    `#graphql query AppId { currentAppInstallation { id } }`,
+    `#graphql
+    query AppId { currentAppInstallation { id } }`,
   );
   const appData = (await appRes.json()) as {
     data?: { currentAppInstallation?: { id: string } | null };

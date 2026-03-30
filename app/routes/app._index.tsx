@@ -92,7 +92,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const themeId = form.get("themeId") as string;
 
   const appRes = await admin.graphql(
-    `#graphql query AppId { currentAppInstallation { id } }`,
+    `#graphql
+    query AppId { currentAppInstallation { id } }`,
   );
   const appData = (await appRes.json()) as {
     data?: { currentAppInstallation?: { id: string } | null };
