@@ -1,5 +1,3 @@
-import { authenticate } from "./shopify.server";
-
 export const SETTINGS_NAMESPACE = "pixeldock";
 export const SETTINGS_KEY = "app_settings";
 
@@ -19,8 +17,12 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   displayMode: "modal",
 };
 
+type AdminGraphQL = {
+  graphql: (query: string, options?: { variables?: Record<string, unknown> }) => Promise<{ json: () => Promise<unknown> }>;
+};
+
 export async function fetchAppSettings(
-  admin: Awaited<ReturnType<typeof authenticate.admin>>["admin"],
+  admin: AdminGraphQL,
 ): Promise<AppSettings> {
   try {
     const res = await admin.graphql(

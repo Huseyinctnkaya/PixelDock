@@ -18,8 +18,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
   const formId = url.searchParams.get("form_id");
 
+  console.log("[PixelDock config] formId from URL:", formId);
   if (!formId) {
-    return corsJson({ config: null });
+    return corsJson({ config: null, debug: "no_form_id" });
   }
 
   const res = await admin.graphql(
@@ -39,21 +40,23 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 
   const raw = data.data?.currentAppInstallation?.metafield?.value;
+  console.log("[PixelDock config] raw registry:", raw ? raw.slice(0, 200) : "null");
 
   if (!raw) {
-    return corsJson({ config: null });
+    return corsJson({ config: null, debug: "no_registry" });
   }
 
   let registry: FormsRegistry;
   try {
     registry = JSON.parse(raw) as FormsRegistry;
   } catch {
-    return corsJson({ config: null });
+    return corsJson({ config: null, debug: "parse_error" });
   }
 
   const form: FormEntry | undefined = registry[formId];
+  console.log("[PixelDock config] formId:", formId, "found:", !!form, "status:", form?.status);
   if (!form || (form.status ?? "draft") !== "active") {
-    return corsJson({ config: null });
+    return corsJson({ config: null, debug: `form_${!form ? "not_found" : "not_active"}`, status: form?.status });
   }
 
   const appSettings = await fetchAppSettings(admin);
