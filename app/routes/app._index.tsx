@@ -1,301 +1,418 @@
-import { useEffect } from "react";
-import type {
-  ActionFunctionArgs,
-  HeadersFunction,
-  LoaderFunctionArgs,
-} from "react-router";
+import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
-import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import {
-  getThemeImageDashboardData,
-  saveThemeImageMetadata,
-} from "../models/theme-images.server";
-import styles from "../styles/theme-image-dashboard.module.css";
+  Badge,
+  BlockStack,
+  Box,
+  Button,
+  Card,
+  Divider,
+  Icon,
+  InlineGrid,
+  InlineStack,
+  Page,
+  Select,
+  Text,
+} from "@shopify/polaris";
+import {
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
+  MinusCircleIcon,
+} from "@shopify/polaris-icons";
+import { useState } from "react";
+
+const NAMESPACE = "pixeldock";
+const SELECTED_THEME_KEY = "selected_theme_id";
+
+type Theme = { id: string; name: string; role: string };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
 
-  return getThemeImageDashboardData(admin);
+  const [themeRes, filesRes, metaRes] = await Promise.all([
+    admin.graphql(`#graphql
+      query Themes {
+        themes(first: 20) {
+          nodes { id name role }
+        }
+      }`),
+    admin.graphql(`#graphql
+      query ImageCount {
+        filesCount: files(first: 250, query: "media_type:IMAGE") {
+          nodes { id }
+        }
+      }`),
+    admin.graphql(
+      `#graphql
+      query SelectedTheme($namespace: String!, $key: String!) {
+        currentAppInstallation {
+          metafield(namespace: $namespace, key: $key) { value }
+        }
+      }`,
+      { variables: { namespace: NAMESPACE, key: SELECTED_THEME_KEY } },
+    ),
+  ]);
+
+  const themeData = (await themeRes.json()) as {
+    data?: { themes?: { nodes?: Theme[] } };
+  };
+  const filesData = (await filesRes.json()) as {
+    data?: { filesCount?: { nodes?: Array<{ id: string }> } };
+  };
+  const metaData = (await metaRes.json()) as {
+    data?: { currentAppInstallation?: { metafield?: { value: string } | null } | null };
+  };
+
+  const themes = themeData.data?.themes?.nodes ?? [];
+  const imageCount = filesData.data?.filesCount?.nodes?.length ?? 0;
+  const selectedThemeId =
+    metaData.data?.currentAppInstallation?.metafield?.value ?? null;
+
+  // themeExplicitlyChosen: wizard tamamlandı mı kontrolü için — sadece kullanıcı aktif seçim yaptıysa true
+  const themeExplicitlyChosen = Boolean(
+    selectedThemeId && themes.find((t) => t.id === selectedThemeId),
+  );
+
+  // Görsel gösterim için fallback MAIN temayı kullan
+  const selectedTheme =
+    themes.find((t) => t.id === selectedThemeId) ??
+    themes.find((t) => t.role === "MAIN") ??
+    themes[0] ??
+    null;
+
+  return { themes, selectedTheme, themeExplicitlyChosen, imageCount };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
-  const formData = await request.formData();
+  const form = await request.formData();
+  const themeId = form.get("themeId") as string;
 
-  const filename = readRequiredText(formData, "filename");
-  const imageUrl = readRequiredText(formData, "imageUrl");
-  const themeId = readRequiredText(formData, "themeId");
-  const themeName = readRequiredText(formData, "themeName");
-
-  const result = await saveThemeImageMetadata(admin, {
-    altText: readText(formData, "altText"),
-    filename,
-    imageUrl,
-    label: readText(formData, "label"),
-    note: readText(formData, "note"),
-    themeId,
-    themeName,
-  });
-
-  return {
-    deleted: result.deleted,
-    filename,
-    key: result.key,
-    ok: true,
-    updatedAt: result.updatedAt,
+  const appRes = await admin.graphql(
+    `#graphql query AppId { currentAppInstallation { id } }`,
+  );
+  const appData = (await appRes.json()) as {
+    data?: { currentAppInstallation?: { id: string } | null };
   };
+  const ownerId = appData.data?.currentAppInstallation?.id;
+  if (!ownerId) return { ok: false };
+
+  await admin.graphql(
+    `#graphql
+    mutation SaveTheme($metafields: [MetafieldsSetInput!]!) {
+      metafieldsSet(metafields: $metafields) {
+        userErrors { message }
+      }
+    }`,
+    {
+      variables: {
+        metafields: [{
+          key: SELECTED_THEME_KEY,
+          namespace: NAMESPACE,
+          ownerId,
+          type: "single_line_text_field",
+          value: themeId,
+        }],
+      },
+    },
+  );
+
+  return { ok: true };
 };
 
-export default function Index() {
-  const { images, metafieldUpdatedAt, storageKey, theme } =
-    useLoaderData<typeof loader>();
-  const syncedCount = images.filter((image) => image.metadata).length;
+export default function Dashboard() {
+  const { themes, selectedTheme, themeExplicitlyChosen, imageCount } = useLoaderData<typeof loader>();
+
+  const allDone = themeExplicitlyChosen;
+  const [wizardOpen, setWizardOpen] = useState(!allDone);
 
   return (
-    <s-page heading="Theme image vault">
-      <div className={styles.page}>
-        <section className={styles.hero}>
-          <div>
-            <p className={styles.eyebrow}>PixelDock</p>
-            <h2 className={styles.heroTitle}>
-              Theme tarafinda yuklenen gorselleri tek ekrandan izle ve metadata
-              olarak Shopify icinde sakla.
-            </h2>
-            <p className={styles.heroText}>
-              Canli temadaki image asset&apos;leri cekiyoruz, onizlemeyi burada
-              gosteriyoruz ve her gorsel icin kaydi app metafield&apos;inda
-              tutuyoruz.
-            </p>
-          </div>
-          <dl className={styles.stats}>
-            <div className={styles.statCard}>
-              <dt>Aktif tema</dt>
-              <dd>{theme ? theme.name : "Tema bulunamadi"}</dd>
-            </div>
-            <div className={styles.statCard}>
-              <dt>Toplam gorsel</dt>
-              <dd>{images.length}</dd>
-            </div>
-            <div className={styles.statCard}>
-              <dt>Metadata senkronlu</dt>
-              <dd>{syncedCount}</dd>
-            </div>
-          </dl>
-        </section>
+    <Page title="Dashboard">
+      <BlockStack gap="500">
 
-        <section className={styles.summaryPanel}>
-          <div>
-            <p className={styles.summaryLabel}>Storage key</p>
-            <p className={styles.summaryValue}>{storageKey}</p>
-          </div>
-          <div>
-            <p className={styles.summaryLabel}>Tema rolu</p>
-            <p className={styles.summaryValue}>{theme?.role ?? "-"}</p>
-          </div>
-          <div>
-            <p className={styles.summaryLabel}>Son backend guncellemesi</p>
-            <p className={styles.summaryValue}>
-              {formatDateTime(metafieldUpdatedAt)}
-            </p>
-          </div>
-        </section>
+        {/* Stats */}
+        <Card>
+          <InlineGrid columns={{ xs: 1, md: "1fr auto" }} gap="400" alignItems="center">
+            <BlockStack gap="100">
+              <Text as="p" variant="bodySm" tone="subdued" fontWeight="semibold">
+                PIXELDOCK
+              </Text>
+              <Text as="h2" variant="headingLg">
+                Müşteri yüklemelerini yönet
+              </Text>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Tema üzerinden gelen logo ve görsel yüklemelerini tek ekrandan takip et.
+              </Text>
+            </BlockStack>
+            <InlineStack gap="300" wrap={false}>
+              <StatBox label="Aktif tema" value={selectedTheme?.name ?? "—"} />
+              <StatBox label="Toplam görsel" value={String(imageCount)} />
+            </InlineStack>
+          </InlineGrid>
+        </Card>
 
-        {theme ? (
-          images.length ? (
-            <section className={styles.grid}>
-              {images.map((image) => (
-                <ThemeImageCard
-                  image={image}
-                  key={image.key}
-                  themeId={theme.id}
-                  themeName={theme.name}
+        {/* Setup wizard */}
+        {!allDone && (
+          <Card padding="0">
+            {/* Header — her zaman görünür, tıklanabilir */}
+            <Box
+              paddingBlock="400"
+              paddingInline="500"
+              borderBlockEndWidth={wizardOpen ? "025" : "0"}
+              borderColor="border"
+            >
+              <InlineStack align="space-between" blockAlign="center">
+                <InlineStack gap="300" blockAlign="center">
+                  <Text as="h2" variant="headingSm" fontWeight="semibold">
+                    Kurulum
+                  </Text>
+                  <Badge tone="attention">Tamamlanmadı</Badge>
+                </InlineStack>
+                <Button
+                  variant="tertiary"
+                  icon={wizardOpen ? ChevronUpIcon : ChevronDownIcon}
+                  onClick={() => setWizardOpen((o) => !o)}
+                  accessibilityLabel={wizardOpen ? "Kurulumu kapat" : "Kurulumu aç"}
                 />
-              ))}
-            </section>
-          ) : (
-            <EmptyState
-              body="Temada image content type ile okunabilen bir asset bulunamadi. Tema editorunden gorsel ekledikten sonra sayfayi yenileyebilirsin."
-              title="Gosterilecek gorsel bulunamadi"
-            />
-          )
-        ) : (
-          <EmptyState
-            body="Bu store icin okunabilir bir Online Store temasi donmedi. Uygulamanin `read_themes` scope'u ile tekrar authorize edildiginden emin ol."
-            title="Tema verisi alinmadi"
-          />
+              </InlineStack>
+            </Box>
+
+            {/* Steps — collapse animasyonu */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateRows: wizardOpen ? "1fr" : "0fr",
+                transition: "grid-template-rows 0.25s ease",
+              }}
+            >
+              <div style={{ overflow: "hidden" }}>
+                <Box paddingBlock="400" paddingInline="500">
+                  <BlockStack gap="0">
+                    <SetupStep
+                      number={1}
+                      title="Uygulamayı yükle"
+                      description="PixelDock test mağazana yüklendi."
+                      completed
+                    />
+                    <ThemeSelectStep
+                      themes={themes}
+                      selectedTheme={selectedTheme}
+                      completed={themeExplicitlyChosen}
+                    />
+                    <SetupStep
+                      number={3}
+                      title="Block'u temana ekle"
+                      description="Tema Editörü'nü aç → Ürün Sayfası → Block Ekle → Apps → PixelDock Upload"
+                      completed={themeExplicitlyChosen}
+                      action={
+                        themeExplicitlyChosen ? (
+                          <Button
+                            variant="secondary"
+                            size="slim"
+                            url="shopify://admin/themes/current/editor"
+                            target="_blank"
+                          >
+                            Tema Editörünü Aç
+                          </Button>
+                        ) : null
+                      }
+                    />
+                    <SetupStep
+                      number={4}
+                      title="Test et"
+                      description="Ürün sayfasına git ve 'Patch Ekle' butonuna tıklayarak yükleme akışını test et."
+                      completed={false}
+                      last
+                      action={
+                        themeExplicitlyChosen ? (
+                          <Button variant="secondary" size="slim">
+                            Önizlemeyi Aç
+                          </Button>
+                        ) : null
+                      }
+                    />
+                  </BlockStack>
+                </Box>
+              </div>
+            </div>
+          </Card>
         )}
-      </div>
-    </s-page>
+
+        {/* Quick actions */}
+        <InlineGrid columns={{ xs: 1, sm: 2 }} gap="400">
+          <Card>
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm" fontWeight="semibold">
+                Image Library
+              </Text>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Müşterilerin yüklediği tüm görselleri kare grid'de görüntüle.
+              </Text>
+              <Box>
+                <Button url="/app/images" variant="primary">
+                  Görselleri Gör
+                </Button>
+              </Box>
+            </BlockStack>
+          </Card>
+          <Card>
+            <BlockStack gap="300">
+              <Text as="h3" variant="headingSm" fontWeight="semibold">
+                Ayarlar
+              </Text>
+              <Text as="p" variant="bodyMd" tone="subdued">
+                Block buton yazısı, bölgeler ve dosya boyutu limitini ayarla.
+              </Text>
+              <Box>
+                <Button url="/app/settings" variant="secondary">
+                  Ayarlara Git
+                </Button>
+              </Box>
+            </BlockStack>
+          </Card>
+        </InlineGrid>
+
+      </BlockStack>
+    </Page>
   );
 }
 
-type ThemeImageCardProps = {
-  image: Awaited<ReturnType<typeof loader>>["images"][number];
-  themeId: string;
-  themeName: string;
-};
-
-function ThemeImageCard({ image, themeId, themeName }: ThemeImageCardProps) {
-  const fetcher = useFetcher<typeof action>();
-  const shopify = useAppBridge();
-  const isSaving =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
-
-  useEffect(() => {
-    if (!fetcher.data?.ok) {
-      return;
-    }
-
-    shopify.toast.show(
-      fetcher.data.deleted
-        ? "Metadata kaydi temizlendi"
-        : "Metadata Shopify backend'e yazildi",
-    );
-  }, [fetcher.data, shopify]);
-
-  return (
-    <article className={styles.card}>
-      <div className={styles.imageFrame}>
-        <img
-          alt={image.metadata?.altText || image.filename}
-          className={styles.image}
-          loading="lazy"
-          src={image.url}
-        />
-        <div className={styles.badges}>
-          <span className={styles.badge}>{image.contentType}</span>
-          {image.metadata ? (
-            <span className={styles.badgeAccent}>Synced</span>
-          ) : (
-            <span className={styles.badgeMuted}>Unsynced</span>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.cardBody}>
-        <div className={styles.cardHeader}>
-          <div>
-            <h3 className={styles.filename}>{image.filename}</h3>
-            <p className={styles.metaLine}>
-              {formatBytes(image.size)} · {formatDateTime(image.updatedAt)}
-            </p>
-          </div>
-          <a
-            className={styles.assetLink}
-            href={image.url}
-            rel="noreferrer"
-            target="_blank"
-          >
-            Open asset
-          </a>
-        </div>
-
-        <fetcher.Form className={styles.form} method="post">
-          <input name="filename" type="hidden" value={image.filename} />
-          <input name="imageUrl" type="hidden" value={image.url} />
-          <input name="themeId" type="hidden" value={themeId} />
-          <input name="themeName" type="hidden" value={themeName} />
-
-          <label className={styles.field}>
-            <span>Label</span>
-            <input
-              defaultValue={image.metadata?.label ?? ""}
-              name="label"
-              placeholder="Hero banner, lookbook cover..."
-              type="text"
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Alt text</span>
-            <input
-              defaultValue={image.metadata?.altText ?? ""}
-              name="altText"
-              placeholder="SEO ve erisilebilirlik icin aciklama"
-              type="text"
-            />
-          </label>
-
-          <label className={styles.field}>
-            <span>Note</span>
-            <textarea
-              defaultValue={image.metadata?.note ?? ""}
-              name="note"
-              placeholder="Kullanim amaci, section referansi veya ic not..."
-              rows={4}
-            />
-          </label>
-
-          <div className={styles.formFooter}>
-            <p className={styles.syncInfo}>
-              {image.metadata
-                ? `Son sync: ${formatDateTime(image.metadata.syncedAt)}`
-                : "Bu gorsel icin backend kaydi henuz yok."}
-            </p>
-            <button disabled={isSaving} type="submit">
-              {isSaving ? "Saving..." : "Save metadata"}
-            </button>
-          </div>
-        </fetcher.Form>
-      </div>
-    </article>
-  );
-}
-
-type EmptyStateProps = {
-  body: string;
+// --- Setup step ---
+function SetupStep({
+  number,
+  title,
+  description,
+  completed,
+  action,
+  last = false,
+}: {
+  number: number;
   title: string;
-};
-
-function EmptyState({ body, title }: EmptyStateProps) {
+  description: string;
+  completed: boolean;
+  action?: React.ReactNode | null;
+  last?: boolean;
+}) {
   return (
-    <section className={styles.emptyState}>
-      <h3>{title}</h3>
-      <p>{body}</p>
-    </section>
+    <Box paddingBlockEnd={last ? "0" : "400"}>
+      <InlineStack gap="400" blockAlign="start" wrap={false}>
+        <Box minWidth="24px" paddingBlockStart="050">
+          {completed ? (
+            <Icon source={CheckCircleIcon} tone="success" />
+          ) : (
+            <Icon source={MinusCircleIcon} tone="subdued" />
+          )}
+        </Box>
+        <BlockStack gap="100" >
+          <InlineStack align="space-between" blockAlign="center" wrap={false}>
+            <Text
+              as="p"
+              variant="bodyMd"
+              fontWeight="semibold"
+              tone={completed ? "subdued" : undefined}
+            >
+              {number}. {title}
+            </Text>
+            {action}
+          </InlineStack>
+          <Text as="p" variant="bodySm" tone="subdued">
+            {description}
+          </Text>
+        </BlockStack>
+      </InlineStack>
+      {!last && (
+        <Box paddingInlineStart="1000" paddingBlockStart="400">
+          <Divider />
+        </Box>
+      )}
+    </Box>
   );
 }
 
-function readRequiredText(formData: FormData, key: string) {
-  const value = readText(formData, key);
+// --- Theme select step ---
+function ThemeSelectStep({
+  themes,
+  selectedTheme,
+  completed,
+}: {
+  themes: Theme[];
+  selectedTheme: Theme | null;
+  completed: boolean;
+}) {
+  const fetcher = useFetcher();
+  const isSaving = fetcher.state !== "idle";
 
-  if (!value) {
-    throw new Response(`Missing field: ${key}`, { status: 400 });
-  }
+  const [value, setValue] = useState(selectedTheme?.id ?? themes[0]?.id ?? "");
 
-  return value;
+  const options = themes.map((t) => ({
+    label: `${t.name}${t.role === "MAIN" ? " (Aktif)" : ""}`,
+    value: t.id,
+  }));
+
+  return (
+    <Box paddingBlockEnd="400">
+      <InlineStack gap="400" blockAlign="start" wrap={false}>
+        <Box minWidth="24px" paddingBlockStart="050">
+          {completed ? (
+            <Icon source={CheckCircleIcon} tone="success" />
+          ) : (
+            <Icon source={MinusCircleIcon} tone="subdued" />
+          )}
+        </Box>
+        <BlockStack gap="200" >
+          <Text as="p" variant="bodyMd" fontWeight="semibold">
+            2. Tema seç
+          </Text>
+          <Text as="p" variant="bodySm" tone="subdued">
+            Hangi temaya PixelDock block'unu ekleyeceğini seç.
+          </Text>
+          <InlineStack gap="200" blockAlign="end" wrap={false}>
+            <Box minWidth="260px">
+              <Select
+                label=""
+                labelHidden
+                options={options}
+                value={value}
+                onChange={setValue}
+              />
+            </Box>
+            <fetcher.Form method="post">
+              <input type="hidden" name="themeId" value={value} />
+              <Button
+                submit
+                variant="primary"
+                size="slim"
+                loading={isSaving}
+              >
+                {completed ? "Güncelle" : "Seç"}
+              </Button>
+            </fetcher.Form>
+          </InlineStack>
+        </BlockStack>
+      </InlineStack>
+      <Box paddingInlineStart="1000" paddingBlockStart="400">
+        <Divider />
+      </Box>
+    </Box>
+  );
 }
 
-function readText(formData: FormData, key: string) {
-  const value = formData.get(key);
-
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function formatDateTime(value: string | null | undefined) {
-  if (!value) {
-    return "-";
-  }
-
-  return new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatBytes(value: number) {
-  if (!value) {
-    return "0 B";
-  }
-
-  const units = ["B", "KB", "MB", "GB"];
-  const exponent = Math.min(Math.floor(Math.log(value) / Math.log(1024)), 3);
-  const size = value / 1024 ** exponent;
-
-  return `${size.toFixed(size >= 10 || exponent === 0 ? 0 : 1)} ${units[exponent]}`;
+function StatBox({ label, value }: { label: string; value: string }) {
+  return (
+    <Box background="bg-surface-secondary" borderRadius="200" padding="400" minWidth="130px">
+      <BlockStack gap="100">
+        <Text as="p" variant="bodySm" tone="subdued">
+          {label}
+        </Text>
+        <Text as="p" variant="headingMd" fontWeight="bold">
+          {value}
+        </Text>
+      </BlockStack>
+    </Box>
+  );
 }
 
 export const headers: HeadersFunction = (headersArgs) => {

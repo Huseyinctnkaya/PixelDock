@@ -1,0 +1,295 @@
+/* PixelDock — Theme Extension Styles */
+
+.pixeldock-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #C84B11;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.pixeldock-trigger:hover {
+  background: #b04010;
+}
+
+/* Modal */
+.pixeldock-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.pixeldock-modal.is-open {
+  display: flex;
+}
+
+.pixeldock-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.pixeldock-dialog {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 480px;
+  margin: 16px;
+  padding: 28px 24px 24px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.18);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+.pixeldock-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.pixeldock-dialog__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #111;
+}
+
+.pixeldock-dialog__close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6B7280;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.pixeldock-dialog__close:hover {
+  color: #111;
+}
+
+/* Field groups */
+.pixeldock-field-group {
+  margin-bottom: 20px;
+}
+
+.pixeldock-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #6B7280;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+/* Toggle buttons */
+.pixeldock-toggle-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pixeldock-toggle-group--half {
+  gap: 0;
+}
+
+.pixeldock-toggle {
+  background: #fff;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #374151;
+  transition: all 0.15s;
+}
+
+.pixeldock-toggle:hover {
+  border-color: #C84B11;
+  color: #C84B11;
+}
+
+.pixeldock-toggle.is-active {
+  background: #C84B11;
+  border-color: #C84B11;
+  color: #fff;
+}
+
+/* Half-width group (Sol / Sağ, Yuvarlak / Dikdörtgen) */
+.pixeldock-toggle-group--half .pixeldock-toggle {
+  flex: 1;
+  border-radius: 0;
+}
+
+.pixeldock-toggle-group--half .pixeldock-toggle:first-child {
+  border-radius: 10px 0 0 10px;
+  border-right-width: 0.75px;
+}
+
+.pixeldock-toggle-group--half .pixeldock-toggle:last-child {
+  border-radius: 0 10px 10px 0;
+  border-left-width: 0.75px;
+}
+
+.pixeldock-toggle-group--half .pixeldock-toggle.is-active {
+  border-color: #C84B11;
+  z-index: 1;
+  position: relative;
+}
+
+/* Upload zone */
+.pixeldock-upload-zone {
+  border: 2px dashed #E5E7EB;
+  border-radius: 14px;
+  padding: 28px 16px;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  background: #FAFAFA;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pixeldock-upload-zone.is-dragover {
+  border-color: #C84B11;
+  background: #FEF6F2;
+}
+
+.pixeldock-file-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.pixeldock-upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #9CA3AF;
+  font-size: 13px;
+  pointer-events: none;
+}
+
+.pixeldock-upload-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.pixeldock-preview-img {
+  max-height: 80px;
+  max-width: 200px;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.pixeldock-preview-name {
+  font-size: 12px;
+  color: #374151;
+  word-break: break-all;
+}
+
+/* Optional note */
+.pixeldock-note-group {
+  margin-bottom: 20px;
+  border-top: 1px solid #F3F4F6;
+  padding-top: 20px;
+}
+
+.pixeldock-note {
+  width: 100%;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #374151;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+
+.pixeldock-note:focus {
+  outline: none;
+  border-color: #C84B11;
+}
+
+/* Status */
+.pixeldock-status {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.pixeldock-status.is-error {
+  background: #FEF2F2;
+  color: #DC2626;
+}
+
+.pixeldock-status.is-success {
+  background: #F0FDF4;
+  color: #16A34A;
+}
+
+/* Footer */
+.pixeldock-form-footer {
+  display: flex;
+  gap: 12px;
+}
+
+.pixeldock-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.pixeldock-btn--cancel {
+  background: #fff;
+  border: 1.5px solid #E5E7EB;
+  color: #374151;
+}
+
+.pixeldock-btn--cancel:hover {
+  border-color: #9CA3AF;
+}
+
+.pixeldock-btn--save {
+  background: #C84B11;
+  border: 1.5px solid #C84B11;
+  color: #fff;
+}
+
+.pixeldock-btn--save:hover {
+  background: #b04010;
+  border-color: #b04010;
+}
+
+.pixeldock-btn--save:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
