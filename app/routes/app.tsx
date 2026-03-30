@@ -20,9 +20,9 @@ export default function App() {
     <ShopifyAppProvider embedded apiKey={apiKey}>
       <PolarisProvider i18n={enTranslations}>
         <s-app-nav>
-          <s-link href="/app/images">Image Library</s-link>
+          <s-link href="/app/orders">Siparişler</s-link>
           <s-link href="/app/forms">Formlar</s-link>
-<s-link href="/app/settings">Ayarlar</s-link>
+          <s-link href="/app/settings">Ayarlar</s-link>
         </s-app-nav>
         <Outlet />
       </PolarisProvider>
