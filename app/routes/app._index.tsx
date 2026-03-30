@@ -322,7 +322,7 @@ export default function Dashboard() {
 
         <Box paddingBlockEnd="400">
           <Text as="p" variant="bodySm" tone="subdued" alignment="center">
-            Made with ♥ by{" "}
+            Made with by{" "}
             <a href="https://www.34devs.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", fontWeight: 600 }}>
               34Devs
             </a>
