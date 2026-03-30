@@ -138,7 +138,7 @@
           var iconWrap = el('div', { className: 'pd-upload-icon' }, [createUploadIcon()]);
           var placeholder = el('div', { className: 'pixeldock-upload-placeholder' }, [
             iconWrap,
-            el('span', { className: 'pd-upload-title', textContent: 'Dosya seç veya sürükle' }),
+            el('span', { className: 'pd-upload-title', textContent: 'Choose or drag a file' }),
             el('span', { className: 'pd-upload-hint', textContent: acceptText }),
           ]);
 
@@ -198,7 +198,7 @@
             className: 'pixeldock-input',
             type: 'email',
             name: 'properties[' + block.label + ']',
-            placeholder: block.placeholder || 'ornek@mail.com',
+            placeholder: block.placeholder || 'example@mail.com',
           });
           if (block.required) emailInput.setAttribute('required', 'required');
           group.appendChild(emailInput);
@@ -210,7 +210,7 @@
             className: 'pixeldock-input',
             type: 'tel',
             name: 'properties[' + block.label + ']',
-            placeholder: block.placeholder || '+90 5xx xxx xx xx',
+            placeholder: block.placeholder || '+1 xxx xxx xxxx',
           });
           if (block.required) telInput.setAttribute('required', 'required');
           group.appendChild(telInput);
@@ -230,7 +230,7 @@
         }
 
         case 'checkbox': {
-          var cbHidden = el('input', { type: 'hidden', 'data-field': block.name, value: 'Hayır' });
+          var cbHidden = el('input', { type: 'hidden', 'data-field': block.name, value: 'No' });
           form.appendChild(cbHidden);
           var cbWrapper = el('label', { className: 'pixeldock-checkbox-label' });
           var cbInput = el('input', { type: 'checkbox', className: 'pixeldock-checkbox', 'data-field-checkbox': block.name });
@@ -303,7 +303,7 @@
           var mfIconWrap = el('div', { className: 'pd-upload-icon' }, [createUploadIcon()]);
           var mfPlaceholder = el('div', { className: 'pixeldock-upload-placeholder' }, [
             mfIconWrap,
-            el('span', { className: 'pd-upload-title', textContent: 'Birden fazla dosya ekle' }),
+            el('span', { className: 'pd-upload-title', textContent: 'Add multiple files' }),
             el('span', { className: 'pd-upload-hint', textContent: mfAcceptText }),
           ]);
           var mfPreview = el('div', { className: 'pixeldock-multi-preview' });
@@ -324,8 +324,8 @@
 
     // Footer
     var footer = el('div', { className: 'pixeldock-form-footer' });
-    var cancelBtn = el('button', { type: 'button', className: 'pixeldock-btn pixeldock-btn--cancel', textContent: 'İptal' });
-    var saveBtn = el('button', { type: 'submit', className: 'pixeldock-btn pixeldock-btn--save', textContent: config.submitLabel || 'Kaydet' });
+    var cancelBtn = el('button', { type: 'button', className: 'pixeldock-btn pixeldock-btn--cancel', textContent: 'Cancel' });
+    var saveBtn = el('button', { type: 'submit', className: 'pixeldock-btn pixeldock-btn--save', textContent: config.submitLabel || 'Save' });
     saveBtn.style.backgroundColor = accentColor;
     saveBtn.style.borderColor = accentColor;
     saveBtn.style.setProperty('--pd-save-hover', shadeColor(accentColor, -20));
@@ -403,8 +403,8 @@
 
       function handleFile(file) {
         var allowed = ['image/png', 'image/jpeg', 'image/jpg'];
-        if (!allowed.includes(file.type)) { showStatus('Lütfen PNG veya JPG dosyası yükleyin.', 'error'); return; }
-        if (file.size > 5 * 1024 * 1024) { showStatus('Dosya 5 MB\'ı geçemez.', 'error'); return; }
+        if (!allowed.includes(file.type)) { showStatus('Please upload a PNG or JPG file.', 'error'); return; }
+        if (file.size > 5 * 1024 * 1024) { showStatus('File cannot exceed 5 MB.', 'error'); return; }
         selectedFile = file;
         hideStatus();
         var reader = new FileReader();
@@ -423,7 +423,7 @@
       var field = cb.dataset.fieldCheckbox;
       var hidden = form.querySelector('input[data-field="' + field + '"]');
       cb.addEventListener('change', function() {
-        if (hidden) hidden.value = cb.checked ? 'Evet' : 'Hayır';
+        if (hidden) hidden.value = cb.checked ? 'Yes' : 'No';
       });
     });
 
@@ -540,7 +540,7 @@
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       saveBtn.disabled = true;
-      saveBtn.textContent = 'Yükleniyor...';
+      saveBtn.textContent = 'Uploading...';
       hideStatus();
 
       // Collect multi-file inputs
@@ -641,16 +641,16 @@
         })
         .then(function (r) {
           if (!r.ok) throw new Error('Cart update failed');
-          showStatus('Ayarlar sepete eklendi!', 'success');
-          saveBtn.textContent = config.submitLabel || 'Kaydet';
+          showStatus('Settings added to cart!', 'success');
+          saveBtn.textContent = config.submitLabel || 'Save';
           saveBtn.disabled = false;
           document.dispatchEvent(new CustomEvent('cart:updated', { bubbles: true }));
           setTimeout(closeModal, 1800);
         })
         .catch(function (err) {
           console.error('[PixelDock]', err);
-          showStatus('Bir hata oluştu. Lütfen tekrar deneyin.', 'error');
-          saveBtn.textContent = config.submitLabel || 'Kaydet';
+          showStatus('An error occurred. Please try again.', 'error');
+          saveBtn.textContent = config.submitLabel || 'Save';
           saveBtn.disabled = false;
         });
     });
@@ -674,11 +674,11 @@
     header.className = 'pixeldock-inline-header';
     var titleSpan = document.createElement('span');
     titleSpan.className = 'pixeldock-inline-title';
-    titleSpan.textContent = config.title || 'Patch Ayarları';
+    titleSpan.textContent = config.title || 'Patch Settings';
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'pixeldock-dialog__close';
-    closeBtn.setAttribute('aria-label', 'Kapat');
+    closeBtn.setAttribute('aria-label', 'Close');
     closeBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
     header.appendChild(titleSpan);
     header.appendChild(closeBtn);
@@ -723,7 +723,7 @@
 
     fetchConfig(configUrl).then(function (config) {
       if (!config) {
-        console.warn('[PixelDock] Form config alınamadı. Form ID eksik veya form taslak durumda.');
+        console.warn('[PixelDock] Could not load form config. Form ID missing or form is in draft status.');
         // Still wire the trigger to show a helpful message
         var triggerEl = block.querySelector('.pixeldock-trigger');
         if (triggerEl) {
@@ -731,12 +731,12 @@
             var modal = block.querySelector('.pixeldock-modal');
             var titleEl = block.querySelector('.pixeldock-dialog__title');
             var dialog = block.querySelector('.pixeldock-dialog');
-            if (titleEl) titleEl.textContent = 'Yapılandırma Hatası';
+            if (titleEl) titleEl.textContent = 'Configuration Error';
             if (dialog && !dialog.querySelector('.pixeldock-config-error')) {
               var errEl = document.createElement('div');
               errEl.className = 'pixeldock-config-error pixeldock-info-box';
               errEl.style.marginTop = '16px';
-              errEl.textContent = 'Form henüz yapılandırılmamış. Lütfen PixelDock uygulamasından bir form yayınlayın ve Form ID\'yi tema editörüne girin.';
+              errEl.textContent = 'This form has not been configured yet. Please publish a form in the PixelDock app and enter the Form ID in the theme editor.';
               dialog.appendChild(errEl);
             }
             if (modal) {
@@ -777,7 +777,7 @@
       } else {
         // Modal mode (default)
         var titleEl = block.querySelector('.pixeldock-dialog__title');
-        if (titleEl) titleEl.textContent = config.title || 'Patch Ayarları';
+        if (titleEl) titleEl.textContent = config.title || 'Patch Settings';
 
         var dialog = block.querySelector('.pixeldock-dialog');
         var form = buildForm(config, block.dataset.blockId);

@@ -94,7 +94,7 @@ export default function ImageLibrary() {
   return (
     <Page
       title="Image Library"
-      subtitle={`${images.length} görsel`}
+      subtitle={`${images.length} images`}
     >
       <BlockStack gap="400">
         {isLoading ? (
@@ -105,11 +105,11 @@ export default function ImageLibrary() {
           </Box>
         ) : images.length === 0 ? (
           <EmptyState
-            heading="Henüz görsel yok"
+            heading="No images yet"
             image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
           >
             <Text as="p" variant="bodyMd">
-              Müşteriler tema üzerindeki PixelDock block'u ile görsel yüklediğinde burada görünecek.
+              Images will appear here once customers upload files via the PixelDock block on your storefront.
             </Text>
           </EmptyState>
         ) : (
@@ -127,7 +127,7 @@ export default function ImageLibrary() {
                     url={`?after=${pageInfo.endCursor ?? ""}`}
                     variant="secondary"
                   >
-                    Daha fazla yükle
+                    Load more
                   </Button>
                 </InlineStack>
               </Box>

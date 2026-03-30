@@ -103,7 +103,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     data?: { currentAppInstallation?: { id: string } | null };
   };
   const ownerId = appData.data?.currentAppInstallation?.id;
-  if (!ownerId) return { ok: false, error: "App installation bulunamadı." };
+  if (!ownerId) return { ok: false, error: "App installation not found." };
 
   const saveRes = await admin.graphql(
     `#graphql
@@ -189,10 +189,10 @@ export default function Settings() {
   };
 
   return (
-    <Page title="Ayarlar">
+    <Page title="Settings">
       <SaveBar id="settings-save-bar">
-        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Kaydet</button>
-        <button onClick={handleDiscard}>Vazgeç</button>
+        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Save</button>
+        <button onClick={handleDiscard}>Discard</button>
       </SaveBar>
       <Layout>
         <Layout.Section>
@@ -206,32 +206,32 @@ export default function Settings() {
               <BlockStack gap="400">
                 <BlockStack gap="100">
                   <Text as="h2" variant="headingSm" fontWeight="semibold">
-                    Buton Ayarları
+                    Button Settings
                   </Text>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Ürün sayfasında görünen "Patch Ekle" butonunun görünümü.
+                    Customize the appearance of the trigger button on the product page.
                   </Text>
                 </BlockStack>
                 <FormLayout>
                   <TextField
-                    label="Buton yazısı"
+                    label="Button label"
                     value={triggerLabel}
                     onChange={(v) => { setTriggerLabel(v); setIsDirty(true); }}
                     autoComplete="off"
                     name="triggerLabel"
                   />
                   <ChoiceList
-                    title="Form açılış modu"
+                    title="Form display mode"
                     choices={[
                       {
                         label: "Modal (Overlay)",
                         value: "modal",
-                        helpText: "Buton tıklandığında ekranın üstünde bir modal pencere açılır.",
+                        helpText: "Opens a modal dialog on top of the page when the button is clicked.",
                       },
                       {
-                        label: "Inline (Sayfa içi)",
+                        label: "Inline (Embedded)",
                         value: "inline",
-                        helpText: "Form, butonun hemen altında kayarak açılır. Sayfadan çıkılmaz.",
+                        helpText: "The form slides open directly below the button without leaving the page.",
                       },
                     ]}
                     selected={displayMode}
@@ -239,7 +239,7 @@ export default function Settings() {
                   />
                   <Box>
                     <BlockStack gap="100">
-                      <Text as="p" variant="bodyMd">Buton rengi</Text>
+                      <Text as="p" variant="bodyMd">Button color</Text>
                       <InlineStack gap="300" blockAlign="center">
                         <Popover
                           active={colorPickerOpen}
@@ -279,15 +279,15 @@ export default function Settings() {
               <BlockStack gap="400">
                 <BlockStack gap="100">
                   <Text as="h2" variant="headingSm" fontWeight="semibold">
-                    Yükleme Sınırları
+                    Upload Limits
                   </Text>
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Tüm formlar için geçerli olan global yükleme kuralları.
+                    Global upload rules that apply to all forms.
                   </Text>
                 </BlockStack>
                 <FormLayout>
                   <TextField
-                    label="Maksimum dosya boyutu (MB)"
+                    label="Maximum file size (MB)"
                     value={maxFileSizeMb}
                     onChange={(v) => { setMaxFileSizeMb(v); setIsDirty(true); }}
                     type="number"
@@ -295,11 +295,11 @@ export default function Settings() {
                     max="20"
                     autoComplete="off"
                     name="maxFileSizeMb"
-                    helpText="1 ile 20 MB arasında bir değer girin."
+                    helpText="Enter a value between 1 and 20 MB."
                   />
                   <ChoiceList
                     allowMultiple
-                    title="Kabul edilen dosya tipleri"
+                    title="Accepted file types"
                     choices={TYPE_OPTIONS}
                     selected={acceptedTypes}
                     onChange={(v) => { setAcceptedTypes(v); setIsDirty(true); }}
@@ -314,26 +314,26 @@ export default function Settings() {
         <Layout.Section variant="oneThird">
           <BlockStack gap="400">
             <CalloutCard
-              title="Tema entegrasyonu"
+              title="Theme integration"
               illustration="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
               primaryAction={{
-                content: "Tema Editörünü aç",
+                content: "Open Theme Editor",
                 url: "shopify://admin/themes/current/editor",
               }}
             >
               <Text as="p" variant="bodyMd">
-                Block'u eklemek için Tema Editörü → Ürün Sayfası → Block Ekle → Apps → <strong>PixelDock Upload</strong>
+                To add the block: Theme Editor → Product Page → Add Block → Apps → <strong>PixelDock Upload</strong>
               </Text>
             </CalloutCard>
 
             <Card>
               <BlockStack gap="300">
                 <Text as="h3" variant="headingSm" fontWeight="semibold">
-                  Hakkında
+                  About
                 </Text>
                 <BlockStack gap="100">
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Uygulama
+                    App
                   </Text>
                   <Text as="p" variant="bodyMd">
                     PixelDock
@@ -341,7 +341,7 @@ export default function Settings() {
                 </BlockStack>
                 <BlockStack gap="100">
                   <Text as="p" variant="bodySm" tone="subdued">
-                    Sürüm
+                    Version
                   </Text>
                   <Text as="p" variant="bodyMd">
                     1.0.0

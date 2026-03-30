@@ -143,22 +143,22 @@ export default function OrdersPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString("tr-TR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    new Date(iso).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
     <Page
-      title="Siparişler"
-      subtitle="PixelDock formu doldurulmuş siparişler"
+      title="Orders"
+      subtitle="Orders with PixelDock form submissions"
     >
       <BlockStack gap="400">
         {orders.length === 0 ? (
           <Card>
             <EmptyState
-              heading="Henüz sipariş yok"
+              heading="No orders yet"
               image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
             >
               <Text as="p" variant="bodyMd">
-                Müşteriler form doldurup sipariş verdiğinde burада görünür.
+                Orders will appear here once customers submit a form and place an order.
               </Text>
             </EmptyState>
           </Card>
@@ -173,7 +173,7 @@ export default function OrdersPage() {
                       <Text as="p" variant="bodyMd" fontWeight="semibold">
                         {order.name}
                       </Text>
-                      <Badge tone="info">{order.customer?.displayName ?? "Misafir"}</Badge>
+                      <Badge tone="info">{order.customer?.displayName ?? "Guest"}</Badge>
                       {order.customer?.email && (
                         <Text as="p" variant="bodySm" tone="subdued">
                           {order.customer.email}
@@ -190,7 +190,7 @@ export default function OrdersPage() {
                         url={order.statusPageUrl}
                         target="_blank"
                       >
-                        Shopify'da Gör
+                        View in Shopify
                       </Button>
                     </InlineStack>
                   </InlineStack>
@@ -267,7 +267,7 @@ export default function OrdersPage() {
                                           padding="400"
                                         >
                                           <Text as="p" variant="bodySm" tone="subdued">
-                                            📄 Dosya
+                                            📄 File
                                           </Text>
                                         </Box>
                                       )}
@@ -292,7 +292,7 @@ export default function OrdersPage() {
                                             variant="secondary"
                                             onClick={() => setPreviewUrl(p.value)}
                                           >
-                                            Önizle
+                                            Preview
                                           </Button>
                                         )}
                                         <Button
@@ -302,7 +302,7 @@ export default function OrdersPage() {
                                           target="_blank"
                                           download
                                         >
-                                          İndir
+                                          Download
                                         </Button>
                                       </InlineStack>
                                     </div>
@@ -326,14 +326,14 @@ export default function OrdersPage() {
                   <Button
                     url={`/app/orders?cursor=${pageInfo.startCursor}&dir=prev`}
                   >
-                    ← Önceki
+                    ← Previous
                   </Button>
                 )}
                 {pageInfo?.hasNextPage && (
                   <Button
                     url={`/app/orders?cursor=${pageInfo.endCursor}&dir=next`}
                   >
-                    Sonraki →
+                    Next →
                   </Button>
                 )}
               </InlineStack>
@@ -361,7 +361,7 @@ export default function OrdersPage() {
         >
           <img
             src={previewUrl}
-            alt="Önizleme"
+            alt="Preview"
             style={{
               maxWidth: "90vw",
               maxHeight: "90vh",

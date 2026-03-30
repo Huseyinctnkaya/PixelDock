@@ -12,7 +12,7 @@ export type AppSettings = {
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   maxFileSizeMb: 5,
   acceptedTypes: ["image/png", "image/jpeg"],
-  triggerLabel: "Patch Ekle",
+  triggerLabel: "Add Patch",
   triggerColor: "#C84B11",
   displayMode: "modal",
 };

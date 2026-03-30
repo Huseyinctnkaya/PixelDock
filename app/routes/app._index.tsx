@@ -73,12 +73,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const selectedThemeId =
     metaData.data?.currentAppInstallation?.metafield?.value ?? null;
 
-  // themeExplicitlyChosen: wizard tamamlandı mı kontrolü için — sadece kullanıcı aktif seçim yaptıysa true
+  // themeExplicitlyChosen: true only if the user has explicitly selected a theme (wizard completed)
   const themeExplicitlyChosen = Boolean(
     selectedThemeId && themes.find((t) => t.id === selectedThemeId),
   );
 
-  // Görsel gösterim için fallback MAIN temayı kullan
+  // Fallback to the MAIN theme for display purposes
   const selectedTheme =
     themes.find((t) => t.id === selectedThemeId) ??
     themes.find((t) => t.role === "MAIN") ??
@@ -143,22 +143,22 @@ export default function Dashboard() {
                 PIXELDOCK
               </Text>
               <Text as="h2" variant="headingLg">
-                Müşteri yüklemelerini yönet
+                Manage customer uploads
               </Text>
               <Text as="p" variant="bodyMd" tone="subdued">
-                Tema üzerinden gelen logo ve görsel yüklemelerini tek ekrandan takip et.
+                Track logo and image uploads from your storefront in one place.
               </Text>
             </BlockStack>
             <InlineStack gap="300" wrap={false}>
-              <StatBox label="Aktif tema" value={selectedTheme?.name ?? "—"} />
-              <StatBox label="Toplam görsel" value={String(imageCount)} />
+              <StatBox label="Active theme" value={selectedTheme?.name ?? "—"} />
+              <StatBox label="Total images" value={String(imageCount)} />
             </InlineStack>
           </InlineGrid>
         </Card>
 
         {/* Setup wizard */}
         <Card padding="0">
-          {/* Header — her zaman görünür, tıklanabilir */}
+          {/* Header — always visible, clickable */}
           <Box
             paddingBlock="400"
             paddingInline="500"
@@ -168,19 +168,19 @@ export default function Dashboard() {
             <InlineStack align="space-between" blockAlign="center">
               <InlineStack gap="300" blockAlign="center">
                 <Text as="h2" variant="headingSm" fontWeight="semibold">
-                  Kurulum
+                  Setup
                 </Text>
                 {themeExplicitlyChosen ? (
-                  <Badge tone="success">Tamamlandı</Badge>
+                  <Badge tone="success">Completed</Badge>
                 ) : (
-                  <Badge tone="attention">Tamamlanmadı</Badge>
+                  <Badge tone="attention">Incomplete</Badge>
                 )}
               </InlineStack>
               <Button
                 variant="tertiary"
                 icon={wizardOpen ? ChevronUpIcon : ChevronDownIcon}
                 onClick={() => setWizardOpen((o) => !o)}
-                accessibilityLabel={wizardOpen ? "Kurulumu kapat" : "Kurulumu aç"}
+                accessibilityLabel={wizardOpen ? "Close setup" : "Open setup"}
               />
             </InlineStack>
           </Box>
@@ -198,8 +198,8 @@ export default function Dashboard() {
                   <BlockStack gap="0">
                     <SetupStep
                       number={1}
-                      title="Uygulamayı yükle"
-                      description="PixelDock test mağazana yüklendi."
+                      title="Install the app"
+                      description="PixelDock has been installed on your store."
                       completed
                     />
                     <ThemeSelectStep
@@ -209,8 +209,8 @@ export default function Dashboard() {
                     />
                     <SetupStep
                       number={3}
-                      title="Block'u temana ekle"
-                      description="Tema Editörü'nü aç → Ürün Sayfası → Block Ekle → Apps → PixelDock Upload"
+                      title="Add the block to your theme"
+                      description="Open Theme Editor → Product Page → Add Block → Apps → PixelDock Upload"
                       completed={themeExplicitlyChosen}
                       action={
                         themeExplicitlyChosen ? (
@@ -220,21 +220,21 @@ export default function Dashboard() {
                             url="shopify://admin/themes/current/editor"
                             target="_blank"
                           >
-                            Tema Editörünü Aç
+                            Open Theme Editor
                           </Button>
                         ) : null
                       }
                     />
                     <SetupStep
                       number={4}
-                      title="Test et"
-                      description="Ürün sayfasına git ve 'Patch Ekle' butonuna tıklayarak yükleme akışını test et."
+                      title="Test it"
+                      description="Go to a product page and click the trigger button to test the upload flow."
                       completed={false}
                       last
                       action={
                         themeExplicitlyChosen ? (
                           <Button variant="secondary" size="slim">
-                            Önizlemeyi Aç
+                            Open Preview
                           </Button>
                         ) : null
                       }
@@ -253,11 +253,11 @@ export default function Dashboard() {
                 Image Library
               </Text>
               <Text as="p" variant="bodyMd" tone="subdued">
-                Müşterilerin yüklediği tüm görselleri kare grid'de görüntüle.
+                View all images uploaded by customers in a grid layout.
               </Text>
               <Box>
                 <Button url="/app/images" variant="primary">
-                  Görselleri Gör
+                  View Images
                 </Button>
               </Box>
             </BlockStack>
@@ -265,14 +265,14 @@ export default function Dashboard() {
           <Card>
             <BlockStack gap="300">
               <Text as="h3" variant="headingSm" fontWeight="semibold">
-                Ayarlar
+                Settings
               </Text>
               <Text as="p" variant="bodyMd" tone="subdued">
-                Block buton yazısı, bölgeler ve dosya boyutu limitini ayarla.
+                Configure the button label, display mode and file size limits.
               </Text>
               <Box>
                 <Button url="/app/settings" variant="secondary">
-                  Ayarlara Git
+                  Go to Settings
                 </Button>
               </Box>
             </BlockStack>
@@ -284,13 +284,13 @@ export default function Dashboard() {
           {[
             {
               icon: EmailIcon,
-              title: "E-posta Desteği",
-              desc: "Sorularınız için bize ulaşın, en kısa sürede geri döneceğiz.",
+              title: "Email Support",
+              desc: "Send us an email and we'll get back to you as soon as possible.",
             },
             {
               icon: QuestionCircleIcon,
-              title: "Dokümantasyon",
-              desc: "Kurulum rehberi ve sık sorulan sorular için dokümanlara göz atın.",
+              title: "Documentation",
+              desc: "Find setup guides and frequently asked questions in our docs.",
             },
           ].map((item) => (
             <Card key={item.title}>
@@ -401,7 +401,7 @@ function ThemeSelectStep({
   const [value, setValue] = useState(selectedTheme?.id ?? themes[0]?.id ?? "");
 
   const options = themes.map((t) => ({
-    label: `${t.name}${t.role === "MAIN" ? " (Aktif)" : ""}`,
+    label: `${t.name}${t.role === "MAIN" ? " (Active)" : ""}`,
     value: t.id,
   }));
 
@@ -417,10 +417,10 @@ function ThemeSelectStep({
         </Box>
         <BlockStack gap="200" >
           <Text as="p" variant="bodyMd" fontWeight="semibold">
-            2. Tema seç
+            2. Select a theme
           </Text>
           <Text as="p" variant="bodySm" tone="subdued">
-            Hangi temaya PixelDock block'unu ekleyeceğini seç.
+            Choose which theme you want to add the PixelDock block to.
           </Text>
           <InlineStack gap="200" blockAlign="end" wrap={false}>
             <Box minWidth="260px">
@@ -440,7 +440,7 @@ function ThemeSelectStep({
                 size="slim"
                 loading={isSaving}
               >
-                {completed ? "Güncelle" : "Seç"}
+                {completed ? "Update" : "Select"}
               </Button>
             </fetcher.Form>
           </InlineStack>

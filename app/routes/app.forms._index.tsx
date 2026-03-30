@@ -30,34 +30,34 @@ const DEFAULT_BLOCKS: FormBlock[] = [
   {
     id: "block-1",
     type: "toggle_group",
-    label: "BÖLGE",
-    name: "bolge",
+    label: "REGION",
+    name: "region",
     required: true,
-    options: "Göğüs, Kol, Sırt",
-    defaultValue: "Göğüs",
+    options: "Chest, Arm, Back",
+    defaultValue: "Chest",
   },
   {
     id: "block-2",
     type: "toggle_group",
-    label: "YAN",
-    name: "yan",
+    label: "SIDE",
+    name: "side",
     required: true,
-    options: "Sol, Sağ",
-    defaultValue: "Sol",
+    options: "Left, Right",
+    defaultValue: "Left",
   },
   {
     id: "block-3",
     type: "toggle_group",
-    label: "ŞEKİL",
-    name: "sekil",
+    label: "SHAPE",
+    name: "shape",
     required: true,
-    options: "Yuvarlak, Dikdörtgen",
-    defaultValue: "Yuvarlak",
+    options: "Round, Rectangle",
+    defaultValue: "Round",
   },
   {
     id: "block-4",
     type: "file",
-    label: "LOGO DOSYASI",
+    label: "LOGO FILE",
     name: "logo",
     required: true,
     accept: ".png,.jpg,.jpeg",
@@ -65,10 +65,10 @@ const DEFAULT_BLOCKS: FormBlock[] = [
   {
     id: "block-5",
     type: "textarea",
-    label: "EK NOT (OPSİYONEL)",
+    label: "ADDITIONAL NOTE (OPTIONAL)",
     name: "note",
     required: false,
-    placeholder: "Özel isteklerinizi buraya yazabilirsiniz...",
+    placeholder: "You can write your special requests here...",
   },
 ];
 
@@ -119,7 +119,7 @@ async function saveRegistry(
     data?: { currentAppInstallation?: { id: string } | null };
   };
   const ownerId = appData.data?.currentAppInstallation?.id;
-  if (!ownerId) return { ok: false, error: "App installation bulunamadı." };
+  if (!ownerId) return { ok: false, error: "App installation not found." };
 
   const saveRes = await admin.graphql(
     `#graphql
@@ -174,9 +174,9 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const id = generateId();
     const newForm: FormEntry = {
       id,
-      name: "Yeni Form",
-      title: "Patch Ayarları",
-      submitLabel: "Kaydet",
+      name: "New Form",
+      title: "Patch Settings",
+      submitLabel: "Save",
       blocks: DEFAULT_BLOCKS.map((b) => ({ ...b, id: `${b.id}-${id}` })),
       createdAt: new Date().toISOString(),
       status: "draft",
@@ -205,15 +205,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { ok: true, error: null, newId: null };
   }
 
-  return { ok: false, error: "Bilinmeyen intent.", newId: null };
+  return { ok: false, error: "Unknown intent.", newId: null };
 };
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "all", content: "Tümü" },
-  { id: "active", content: "Aktif" },
-  { id: "draft", content: "Taslak" },
+  { id: "all", content: "All" },
+  { id: "active", content: "Active" },
+  { id: "draft", content: "Draft" },
 ];
 
 export default function FormsIndex() {
@@ -259,14 +259,14 @@ export default function FormsIndex() {
   const draftCnt = forms.filter((f) => (f.status ?? "draft") === "draft").length;
 
   const tabs = [
-    { id: "all", content: `Tümü (${forms.length})` },
-    { id: "active", content: `Aktif (${activeCnt})` },
-    { id: "draft", content: `Taslak (${draftCnt})` },
+    { id: "all", content: `All (${forms.length})` },
+    { id: "active", content: `Active (${activeCnt})` },
+    { id: "draft", content: `Draft (${draftCnt})` },
   ];
 
   return (
     <Page
-      title="Formlar"
+      title="Forms"
       primaryAction={
         <Button
           icon={PlusIcon}
@@ -274,17 +274,17 @@ export default function FormsIndex() {
           loading={isCreating}
           onClick={handleCreate}
         >
-          Yeni Form
+          New Form
         </Button>
       }
     >
       {forms.length === 0 ? (
         <EmptyState
-          heading="Henüz form yok"
+          heading="No forms yet"
           image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-          action={{ content: "Yeni Form Oluştur", onAction: handleCreate }}
+          action={{ content: "Create New Form", onAction: handleCreate }}
         >
-          <p>Müşterilere gösterilecek formları buradan yönetebilirsin.</p>
+          <p>Manage the forms shown to your customers from here.</p>
         </EmptyState>
       ) : (
         <BlockStack gap="400">
@@ -299,7 +299,7 @@ export default function FormsIndex() {
           {filteredForms.length === 0 ? (
             <Box paddingBlock="800">
               <Text as="p" variant="bodyMd" tone="subdued" alignment="center">
-                Bu filtrede form yok.
+                No forms match this filter.
               </Text>
             </Box>
           ) : (
@@ -321,15 +321,15 @@ export default function FormsIndex() {
                           </Text>
                           <Badge tone="info">{form.id}</Badge>
                           <Badge tone={isActive ? "success" : "attention"}>
-                            {isActive ? "Aktif" : "Taslak"}
+                            {isActive ? "Active" : "Draft"}
                           </Badge>
                         </InlineStack>
                         <InlineStack gap="400">
                           <Text as="p" variant="bodySm" tone="subdued">
-                            {form.blocks.length} alan
+                            {form.blocks.length} fields
                           </Text>
                           <Text as="p" variant="bodySm" tone="subdued">
-                            {new Date(form.createdAt).toLocaleDateString("tr-TR")}
+                            {new Date(form.createdAt).toLocaleDateString("en-GB")}
                           </Text>
                         </InlineStack>
                       </BlockStack>
@@ -340,7 +340,7 @@ export default function FormsIndex() {
                           loading={isToggling}
                           onClick={() => handleToggleStatus(form.id)}
                         >
-                          {isActive ? "Taslağa Al" : "Yayınla"}
+                          {isActive ? "Unpublish" : "Publish"}
                         </Button>
                         <Button
                           icon={EditIcon}
@@ -348,7 +348,7 @@ export default function FormsIndex() {
                           size="slim"
                           onClick={() => navigate(`/app/forms/${form.id}`)}
                         >
-                          Düzenle
+                          Edit
                         </Button>
                         <Button
                           icon={DeleteIcon}
@@ -357,7 +357,7 @@ export default function FormsIndex() {
                           tone="critical"
                           onClick={() => handleDelete(form.id)}
                         >
-                          Sil
+                          Delete
                         </Button>
                       </InlineStack>
                     </InlineGrid>

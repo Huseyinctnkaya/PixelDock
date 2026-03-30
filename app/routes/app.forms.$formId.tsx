@@ -55,22 +55,22 @@ const NAMESPACE = "pixeldock";
 const REGISTRY_KEY = "forms_registry";
 
 const BLOCK_TYPE_LABELS: Record<BlockType, string> = {
-  toggle_group: "Seçici (Toggle Grup)",
+  toggle_group: "Toggle Group",
   select: "Dropdown",
-  input: "Metin Girişi",
-  textarea: "Uzun Metin",
-  file: "Dosya Yükleme",
-  color: "Renk Seçici",
-  number: "Sayı / Ölçü",
-  date: "Tarih",
-  email: "E-posta",
-  tel: "Telefon",
-  checkbox: "Onay Kutusu",
-  checkbox_group: "Çoklu Seçim",
-  divider: "Bölücü",
-  info: "Bilgi Metni",
-  multi_file: "Çoklu Dosya",
-  rating: "Derecelendirme",
+  input: "Text Input",
+  textarea: "Long Text",
+  file: "File Upload",
+  color: "Color Picker",
+  number: "Number / Measurement",
+  date: "Date",
+  email: "Email",
+  tel: "Phone",
+  checkbox: "Checkbox",
+  checkbox_group: "Multi-Select",
+  divider: "Divider",
+  info: "Info Text",
+  multi_file: "Multiple Files",
+  rating: "Rating",
   url: "URL",
 };
 
@@ -116,7 +116,7 @@ async function saveRegistry(
     data?: { currentAppInstallation?: { id: string } | null };
   };
   const ownerId = appData.data?.currentAppInstallation?.id;
-  if (!ownerId) return { ok: false, error: "App installation bulunamadı." };
+  if (!ownerId) return { ok: false, error: "App installation not found." };
 
   const saveRes = await admin.graphql(
     `#graphql
@@ -155,7 +155,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const formId = params.formId as string;
   const form = registry[formId];
   if (!form) {
-    throw new Response("Form bulunamadı", { status: 404 });
+    throw new Response("Form not found", { status: 404 });
   }
 
   // Fetch ALL metafield definitions from the store for the metafield picker
@@ -181,9 +181,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   };
 
   const metafieldDefs = [
-    ...(metaData.data?.productDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Ürün)`, value: `${n.namespace}.${n.key}` })),
-    ...(metaData.data?.customerDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Müşteri)`, value: `${n.namespace}.${n.key}` })),
-    ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Sipariş)`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.productDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Product)`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.customerDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Customer)`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Order)`, value: `${n.namespace}.${n.key}` })),
   ];
 
   return { form, metafieldDefs };
@@ -201,12 +201,12 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   try {
     updatedForm = JSON.parse(raw);
   } catch {
-    return { ok: false, error: "Geçersiz config." };
+    return { ok: false, error: "Invalid config." };
   }
 
   const registry = await fetchRegistry(admin);
   if (!registry[formId]) {
-    return { ok: false, error: "Form bulunamadı." };
+    return { ok: false, error: "Form not found." };
   }
 
   registry[formId] = { ...updatedForm, id: formId };
@@ -284,7 +284,7 @@ export default function FormEditor() {
 
   const handleCopyId = useCallback(() => {
     navigator.clipboard.writeText(form.id).then(() => {
-      shopify.toast.show("Form ID kopyalandı!");
+      shopify.toast.show("Form ID copied!");
     });
   }, [form.id, shopify]);
 
@@ -297,11 +297,11 @@ export default function FormEditor() {
       name: `field_${id}`,
       required: false,
       ...(newBlockType === "toggle_group" || newBlockType === "select"
-        ? { options: "Seçenek 1, Seçenek 2" }
+        ? { options: "Option 1, Option 2" }
         : {}),
       ...(newBlockType === "file" || newBlockType === "multi_file" ? { accept: ".png,.jpg,.jpeg" } : {}),
       ...(newBlockType === "rating" ? { defaultValue: "0" } : {}),
-      ...(newBlockType === "checkbox_group" ? { options: "Seçenek 1, Seçenek 2" } : {}),
+      ...(newBlockType === "checkbox_group" ? { options: "Option 1, Option 2" } : {}),
     };
     setForm((f) => ({ ...f, blocks: [...f.blocks, newBlock] }));
     setIsDirty(true);
@@ -336,13 +336,13 @@ export default function FormEditor() {
 
   return (
     <Page
-      title={form.name || "Form Düzenle"}
+      title={form.name || "Edit Form"}
       subtitle={`Form ID: ${form.id}`}
-      backAction={{ content: "Formlar", url: "/app/forms" }}
+      backAction={{ content: "Forms", url: "/app/forms" }}
     >
       <SaveBar id="form-editor-save-bar">
-        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Kaydet</button>
-        <button onClick={handleDiscard}>Vazgeç</button>
+        <button variant="primary" onClick={handleSave} loading={isSaving ? "" : undefined}>Save</button>
+        <button onClick={handleDiscard}>Discard</button>
       </SaveBar>
       <BlockStack gap="500">
 
@@ -352,7 +352,7 @@ export default function FormEditor() {
         <Card>
           <BlockStack gap="400">
             <Text as="h2" variant="headingSm" fontWeight="semibold">
-              Form Ayarları
+              Form Settings
             </Text>
 
             {/* Form ID read-only */}
@@ -368,28 +368,28 @@ export default function FormEditor() {
                   size="slim"
                   onClick={handleCopyId}
                 >
-                  Kopyala
+                  Copy
                 </Button>
               </InlineStack>
             </Box>
 
             <FormLayout>
               <TextField
-                label="Form Adı"
+                label="Form Name"
                 value={form.name}
                 onChange={(v) => { setForm((f) => ({ ...f, name: v })); setIsDirty(true); }}
                 autoComplete="off"
-                helpText="Bu ad yalnızca yönetim panelinde görünür"
+                helpText="This name is only visible in the admin panel"
               />
               <FormLayout.Group>
                 <TextField
-                  label="Modal başlığı"
+                  label="Modal title"
                   value={form.title}
                   onChange={(v) => { setForm((f) => ({ ...f, title: v })); setIsDirty(true); }}
                   autoComplete="off"
                 />
                 <TextField
-                  label="Kaydet butonu yazısı"
+                  label="Save button label"
                   value={form.submitLabel}
                   onChange={(v) => { setForm((f) => ({ ...f, submitLabel: v })); setIsDirty(true); }}
                   autoComplete="off"
@@ -405,10 +405,10 @@ export default function FormEditor() {
             <InlineStack align="space-between" blockAlign="center">
               <BlockStack gap="100">
                 <Text as="h2" variant="headingSm" fontWeight="semibold">
-                  Form Alanları
+                  Form Fields
                 </Text>
                 <Text as="p" variant="bodySm" tone="subdued">
-                  {form.blocks.length} alan
+                  {form.blocks.length} fields
                 </Text>
               </BlockStack>
               <Button
@@ -416,7 +416,7 @@ export default function FormEditor() {
                 onClick={() => setAddModalOpen(true)}
                 variant="secondary"
               >
-                Alan Ekle
+                Add Field
               </Button>
             </InlineStack>
           </Box>
@@ -427,7 +427,7 @@ export default function FormEditor() {
             <Box paddingBlock="800" paddingInline="500">
               <BlockStack gap="200" inlineAlign="center">
                 <Text as="p" variant="bodyMd" tone="subdued" alignment="center">
-                  Henüz alan yok. "Alan Ekle" ile başla.
+                  No fields yet. Click "Add Field" to get started.
                 </Text>
               </BlockStack>
             </Box>
@@ -462,13 +462,13 @@ export default function FormEditor() {
       <Modal
         open={addModalOpen}
         onClose={() => setAddModalOpen(false)}
-        title="Alan Ekle"
-        primaryAction={{ content: "Ekle", onAction: addBlock }}
-        secondaryActions={[{ content: "İptal", onAction: () => setAddModalOpen(false) }]}
+        title="Add Field"
+        primaryAction={{ content: "Add", onAction: addBlock }}
+        secondaryActions={[{ content: "Cancel", onAction: () => setAddModalOpen(false) }]}
       >
         <Modal.Section>
           <Select
-            label="Alan tipi"
+            label="Field type"
             options={BLOCK_TYPE_OPTIONS}
             value={newBlockType}
             onChange={(v) => setNewBlockType(v as BlockType)}
@@ -557,10 +557,10 @@ function BlockRow({
               <BlockStack gap="050">
                 <InlineStack gap="200" blockAlign="center">
                   <Text as="p" variant="bodyMd" fontWeight="semibold">
-                    {block.label || "(isimsiz)"}
+                    {block.label || "(unnamed)"}
                   </Text>
                   <Badge tone="info">{BLOCK_TYPE_LABELS[block.type]}</Badge>
-                  {block.required && <Badge tone="attention">Zorunlu</Badge>}
+                  {block.required && <Badge tone="attention">Required</Badge>}
                 </InlineStack>
                 {hasOptions && block.options && (
                   <Text as="p" variant="bodySm" tone="subdued">
@@ -577,7 +577,7 @@ function BlockRow({
                 size="slim"
                 disabled={isFirst}
                 onClick={() => onMove(block.id, "up")}
-                accessibilityLabel="Yukarı taşı"
+                accessibilityLabel="Move up"
               />
               <Button
                 icon={ChevronDownIcon}
@@ -585,14 +585,14 @@ function BlockRow({
                 size="slim"
                 disabled={isLast}
                 onClick={() => onMove(block.id, "down")}
-                accessibilityLabel="Aşağı taşı"
+                accessibilityLabel="Move down"
               />
               <Button
                 variant="tertiary"
                 size="slim"
                 onClick={() => setExpanded((e) => !e)}
               >
-                {expanded ? "Kapat" : "Düzenle"}
+                {expanded ? "Close" : "Edit"}
               </Button>
               <Button
                 icon={DeleteIcon}
@@ -600,7 +600,7 @@ function BlockRow({
                 size="slim"
                 tone="critical"
                 onClick={() => onDelete(block.id)}
-                accessibilityLabel="Sil"
+                accessibilityLabel="Delete"
               />
             </InlineStack>
           </InlineStack>
@@ -626,38 +626,38 @@ function BlockRow({
               <FormLayout>
                 <FormLayout.Group>
                   <TextField
-                    label="Etiket"
+                    label="Label"
                     value={block.label}
                     onChange={(v) => onUpdate(block.id, { label: v })}
                     autoComplete="off"
-                    helpText="Formda gösterilecek alan başlığı"
+                    helpText="Field title shown in the form"
                   />
                   <TextField
-                    label="Alan adı"
+                    label="Field name"
                     value={block.name}
                     onChange={(v) => onUpdate(block.id, { name: v })}
                     autoComplete="off"
-                    helpText="Sipariş notunda kullanılacak anahtar (boşluksuz)"
+                    helpText="Key used in order notes (no spaces)"
                   />
                 </FormLayout.Group>
 
                 {hasOptions && (
                   <TextField
-                    label="Seçenekler"
+                    label="Options"
                     value={block.options ?? ""}
                     onChange={(v) => onUpdate(block.id, { options: v })}
                     autoComplete="off"
-                    helpText="Virgülle ayır: Göğüs, Kol, Sırt"
+                    helpText="Comma-separated: Chest, Arm, Back"
                   />
                 )}
 
                 {hasOptions && (
                   <TextField
-                    label="Varsayılan seçenek"
+                    label="Default option"
                     value={block.defaultValue ?? ""}
                     onChange={(v) => onUpdate(block.id, { defaultValue: v })}
                     autoComplete="off"
-                    helpText="Sayfa açıldığında seçili gelecek değer"
+                    helpText="Value selected when the page loads"
                   />
                 )}
 
@@ -672,35 +672,35 @@ function BlockRow({
 
                 {block.type === "file" && (
                   <TextField
-                    label="Kabul edilen dosya tipleri"
+                    label="Accepted file types"
                     value={block.accept ?? ".png,.jpg,.jpeg"}
                     onChange={(v) => onUpdate(block.id, { accept: v })}
                     autoComplete="off"
-                    helpText="Örn: .png,.jpg,.jpeg,.svg"
+                    helpText="e.g. .png,.jpg,.jpeg,.svg"
                   />
                 )}
 
                 {(block.type === "multi_file") && (
                   <TextField
-                    label="Kabul edilen dosya tipleri"
+                    label="Accepted file types"
                     value={block.accept ?? ".png,.jpg,.jpeg"}
                     onChange={(v) => onUpdate(block.id, { accept: v })}
                     autoComplete="off"
-                    helpText="Örn: .png,.jpg,.jpeg,.svg"
+                    helpText="e.g. .png,.jpg,.jpeg,.svg"
                   />
                 )}
 
                 {block.type === "number" && (
                   <FormLayout.Group>
                     <TextField
-                      label="Min değer"
+                      label="Min value"
                       value={block.min ?? ""}
                       onChange={(v) => onUpdate(block.id, { min: v })}
                       autoComplete="off"
                       type="number"
                     />
                     <TextField
-                      label="Max değer"
+                      label="Max value"
                       value={block.max ?? ""}
                       onChange={(v) => onUpdate(block.id, { max: v })}
                       autoComplete="off"
@@ -711,18 +711,18 @@ function BlockRow({
 
                 {block.type === "info" && (
                   <TextField
-                    label="Bilgi metni içeriği"
+                    label="Info text content"
                     value={block.label}
                     onChange={(v) => onUpdate(block.id, { label: v })}
                     autoComplete="off"
                     multiline={3}
-                    helpText="Müşteriye gösterilecek açıklama metni"
+                    helpText="Description text shown to the customer"
                   />
                 )}
 
                 {block.type === "rating" && (
                   <TextField
-                    label="Varsayılan puan (0 = seçilmemiş)"
+                    label="Default rating (0 = none)"
                     value={block.defaultValue ?? "0"}
                     onChange={(v) => onUpdate(block.id, { defaultValue: v })}
                     autoComplete="off"
@@ -733,10 +733,10 @@ function BlockRow({
                 )}
 
                 <Select
-                  label="Zorunlu alan"
+                  label="Required field"
                   options={[
-                    { label: "Evet", value: "true" },
-                    { label: "Hayır", value: "false" },
+                    { label: "Yes", value: "true" },
+                    { label: "No", value: "false" },
                   ]}
                   value={block.required ? "true" : "false"}
                   onChange={(v) => onUpdate(block.id, { required: v === "true" })}
@@ -744,17 +744,17 @@ function BlockRow({
 
                 {block.type !== "divider" && block.type !== "info" && (
                   <Select
-                    label="Metafield olarak kaydet"
+                    label="Save as metafield"
                     options={[
-                      { label: "— Kaydetme —", value: "" },
+                      { label: "— Don't save —", value: "" },
                       ...metafieldDefs,
                     ]}
                     value={block.metafieldKey ?? ""}
                     onChange={(v) => onUpdate(block.id, { metafieldKey: v || undefined })}
                     helpText={
                       block.metafieldKey
-                        ? `Form gönderiminde değer "${block.metafieldKey}" metafield'ına yazılır.`
-                        : "Shopify Admin → Ayarlar → Özel veri'den metafield tanımı oluşturun, ardından burada seçin."
+                        ? `On form submission the value will be written to the "${block.metafieldKey}" metafield.`
+                        : "Create a metafield definition in Shopify Admin → Settings → Custom data, then select it here."
                     }
                   />
                 )}

@@ -33,12 +33,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (!appSettings.acceptedTypes.includes(file.type)) {
-    return corsJson({ error: `Kabul edilen dosya tipleri: ${appSettings.acceptedTypes.join(", ")}` }, 400);
+    return corsJson({ error: `Accepted file types: ${appSettings.acceptedTypes.join(", ")}` }, 400);
   }
 
   const MAX_BYTES = appSettings.maxFileSizeMb * 1024 * 1024;
   if (file.size > MAX_BYTES) {
-    return corsJson({ error: `Dosya ${appSettings.maxFileSizeMb} MB sınırını aşıyor` }, 400);
+    return corsJson({ error: `File exceeds the ${appSettings.maxFileSizeMb} MB limit` }, 400);
   }
 
   // --- Step 1: Create staged upload target ---
