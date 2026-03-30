@@ -54,6 +54,7 @@
 
   // ─── Build form from config ───────────────────────────────────────────────
   function buildForm(config, blockId) {
+    var accentColor = config.triggerColor || '#C84B11';
     var form = el('form', { className: 'pixeldock-form' });
 
     config.blocks.forEach(function (block) {
@@ -325,6 +326,9 @@
     var footer = el('div', { className: 'pixeldock-form-footer' });
     var cancelBtn = el('button', { type: 'button', className: 'pixeldock-btn pixeldock-btn--cancel', textContent: 'İptal' });
     var saveBtn = el('button', { type: 'submit', className: 'pixeldock-btn pixeldock-btn--save', textContent: config.submitLabel || 'Kaydet' });
+    saveBtn.style.backgroundColor = accentColor;
+    saveBtn.style.borderColor = accentColor;
+    saveBtn.style.setProperty('--pd-save-hover', shadeColor(accentColor, -20));
     footer.appendChild(cancelBtn);
     footer.appendChild(saveBtn);
 

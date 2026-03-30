@@ -528,8 +528,8 @@
 }
 
 .pixeldock-btn--save:hover {
-  background: #b04010;
-  box-shadow: 0 4px 12px rgba(200, 75, 17, 0.35);
+  background: var(--pd-save-hover, #b04010);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
   transform: translateY(-1px);
 }
 
