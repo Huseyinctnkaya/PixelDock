@@ -29,7 +29,7 @@ import {
 } from "@shopify/polaris-icons";
 import { useState, useCallback, useRef } from "react";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import type { FormsRegistry, FormEntry } from "./app.forms._index";
+import type { FormsRegistry, FormEntry } from "../forms.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

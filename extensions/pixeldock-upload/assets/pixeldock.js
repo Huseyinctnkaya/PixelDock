@@ -6,13 +6,23 @@
 
   function fetchConfig(configUrl) {
     if (_configCache) return Promise.resolve(_configCache);
+    console.log('[PixelDock] Fetching config from:', configUrl);
     return fetch(configUrl)
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
+      .then(function (r) {
+        console.log('[PixelDock] Config response status:', r.status);
+        return r.text();
+      })
+      .then(function (text) {
+        console.log('[PixelDock] Config raw response:', text);
+        var data = JSON.parse(text);
         _configCache = data.config || null;
+        console.log('[PixelDock] Parsed config:', _configCache ? 'OK' : 'NULL');
         return _configCache;
       })
-      .catch(function () { return null; });
+      .catch(function (err) {
+        console.error('[PixelDock] Config fetch error:', err);
+        return null;
+      });
   }
 
   // ─── Color helper ─────────────────────────────────────────────────────────

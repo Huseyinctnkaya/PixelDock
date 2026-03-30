@@ -17,38 +17,9 @@ import {
 } from "@shopify/polaris";
 import { PlusIcon, DeleteIcon, EditIcon } from "@shopify/polaris-icons";
 import { useEffect, useState } from "react";
+import type { BlockType, FormBlock, FormEntry, FormStatus, FormsRegistry } from "../forms.types";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type BlockType = "toggle_group" | "input" | "select" | "file" | "textarea" | "color" | "number" | "date" | "email" | "tel" | "checkbox" | "checkbox_group" | "divider" | "info" | "multi_file" | "rating" | "url";
-
-export type FormBlock = {
-  id: string;
-  type: BlockType;
-  label: string;
-  name: string;
-  required: boolean;
-  placeholder?: string;
-  options?: string;
-  defaultValue?: string;
-  accept?: string;
-  min?: string;
-  max?: string;
-};
-
-export type FormStatus = "active" | "draft";
-
-export type FormEntry = {
-  id: string;
-  name: string;
-  title: string;
-  submitLabel: string;
-  blocks: FormBlock[];
-  createdAt: string;
-  status: FormStatus;
-};
-
-export type FormsRegistry = Record<string, FormEntry>;
+export type { BlockType, FormBlock, FormEntry, FormStatus, FormsRegistry };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
