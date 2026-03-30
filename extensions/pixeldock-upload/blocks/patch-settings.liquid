@@ -24,68 +24,10 @@
         </button>
       </div>
 
-      <form class="pixeldock-form">
-        <input type="hidden" class="pd-field-region" value="Göğüs">
-        <input type="hidden" class="pd-field-yan" value="Sol">
-        <input type="hidden" class="pd-field-sekil" value="Yuvarlak">
-        <input type="hidden" class="pd-field-logo-url" value="">
-
-        <div class="pixeldock-field-group">
-          <p class="pixeldock-label">BÖLGE</p>
-          <div class="pixeldock-toggle-group" data-field="region">
-            <button type="button" class="pixeldock-toggle is-active" data-value="Göğüs">Göğüs</button>
-            <button type="button" class="pixeldock-toggle" data-value="Kol">Kol</button>
-            <button type="button" class="pixeldock-toggle" data-value="Sırt">Sırt</button>
-          </div>
-        </div>
-
-        <div class="pixeldock-field-group" data-show-for-regions="Göğüs,Kol">
-          <p class="pixeldock-label">YAN</p>
-          <div class="pixeldock-toggle-group pixeldock-toggle-group--half" data-field="yan">
-            <button type="button" class="pixeldock-toggle is-active" data-value="Sol">Sol</button>
-            <button type="button" class="pixeldock-toggle" data-value="Sağ">Sağ</button>
-          </div>
-        </div>
-
-        <div class="pixeldock-field-group">
-          <p class="pixeldock-label">ŞEKİL</p>
-          <div class="pixeldock-toggle-group pixeldock-toggle-group--half" data-field="sekil">
-            <button type="button" class="pixeldock-toggle is-active" data-value="Yuvarlak">Yuvarlak</button>
-            <button type="button" class="pixeldock-toggle" data-value="Dikdörtgen">Dikdörtgen</button>
-          </div>
-        </div>
-
-        <div class="pixeldock-field-group">
-          <p class="pixeldock-label">LOGO DOSYASI</p>
-          <div class="pixeldock-upload-zone">
-            <input class="pixeldock-file-input" type="file" accept=".png,.jpg,.jpeg" tabindex="-1">
-            <div class="pixeldock-upload-placeholder">
-              <svg width="28" height="32" viewBox="0 0 28 32" fill="none">
-                <path d="M16 2H4C3.47 2 2.96 2.21 2.59 2.59C2.21 2.96 2 3.47 2 4V28C2 28.53 2.21 29.04 2.59 29.41C2.96 29.79 3.47 30 4 30H24C24.53 30 25.04 29.79 25.41 29.41C25.79 29.04 26 28.53 26 28V12L16 2Z" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M16 2V12H26" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M14 22V17M11.5 19.5H16.5" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-              <span>PNG, JPG</span>
-            </div>
-            <div class="pixeldock-upload-preview" hidden>
-              <img class="pixeldock-preview-img" src="" alt="Logo önizleme">
-              <span class="pixeldock-preview-name"></span>
-            </div>
-          </div>
-        </div>
-
-        <div class="pixeldock-note-group">
-          <p class="pixeldock-label">EK NOT (OPSİYONEL)</p>
-          <textarea class="pixeldock-note" name="note" rows="3" placeholder="Özel isteklerinizi buraya yazabilirsiniz..."></textarea>
-        </div>
-
-        <div class="pixeldock-status" hidden></div>
-
-        <div class="pixeldock-form-footer">
-          <button type="button" class="pixeldock-btn pixeldock-btn--cancel">İptal</button>
-          <button type="submit" class="pixeldock-btn pixeldock-btn--save">Kaydet</button>
-        </div>
-      </form>
+      {%- comment -%}
+        Form is built dynamically by pixeldock.js after fetching
+        the merchant's config from /apps/pixeldock/config
+      {%- endcomment -%}
 
     </div>
   </div>
