@@ -294,7 +294,7 @@ export default function Dashboard() {
             },
           ].map((item) => (
             <Card key={item.title}>
-              <BlockStack gap="300">
+              <InlineStack gap="400" blockAlign="start" wrap={false}>
                 <div style={{
                   width: 40,
                   height: 40,
@@ -303,6 +303,7 @@ export default function Dashboard() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
                 }}>
                   <Icon source={item.icon} tone="subdued" />
                 </div>
@@ -314,7 +315,7 @@ export default function Dashboard() {
                     {item.desc}
                   </Text>
                 </BlockStack>
-              </BlockStack>
+              </InlineStack>
             </Card>
           ))}
         </InlineGrid>
