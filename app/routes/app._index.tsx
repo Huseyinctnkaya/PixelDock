@@ -127,8 +127,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 export default function Dashboard() {
   const { themes, selectedTheme, themeExplicitlyChosen, imageCount } = useLoaderData<typeof loader>();
 
-  const allDone = themeExplicitlyChosen;
-  const [wizardOpen, setWizardOpen] = useState(!allDone);
+  const [wizardOpen, setWizardOpen] = useState(!themeExplicitlyChosen);
 
   return (
     <Page title="Dashboard">
@@ -156,30 +155,33 @@ export default function Dashboard() {
         </Card>
 
         {/* Setup wizard */}
-        {!allDone && (
-          <Card padding="0">
-            {/* Header — her zaman görünür, tıklanabilir */}
-            <Box
-              paddingBlock="400"
-              paddingInline="500"
-              borderBlockEndWidth={wizardOpen ? "025" : "0"}
-              borderColor="border"
-            >
-              <InlineStack align="space-between" blockAlign="center">
-                <InlineStack gap="300" blockAlign="center">
-                  <Text as="h2" variant="headingSm" fontWeight="semibold">
-                    Kurulum
-                  </Text>
+        <Card padding="0">
+          {/* Header — her zaman görünür, tıklanabilir */}
+          <Box
+            paddingBlock="400"
+            paddingInline="500"
+            borderBlockEndWidth={wizardOpen ? "025" : "0"}
+            borderColor="border"
+          >
+            <InlineStack align="space-between" blockAlign="center">
+              <InlineStack gap="300" blockAlign="center">
+                <Text as="h2" variant="headingSm" fontWeight="semibold">
+                  Kurulum
+                </Text>
+                {themeExplicitlyChosen ? (
+                  <Badge tone="success">Tamamlandı</Badge>
+                ) : (
                   <Badge tone="attention">Tamamlanmadı</Badge>
-                </InlineStack>
-                <Button
-                  variant="tertiary"
-                  icon={wizardOpen ? ChevronUpIcon : ChevronDownIcon}
-                  onClick={() => setWizardOpen((o) => !o)}
-                  accessibilityLabel={wizardOpen ? "Kurulumu kapat" : "Kurulumu aç"}
-                />
+                )}
               </InlineStack>
-            </Box>
+              <Button
+                variant="tertiary"
+                icon={wizardOpen ? ChevronUpIcon : ChevronDownIcon}
+                onClick={() => setWizardOpen((o) => !o)}
+                accessibilityLabel={wizardOpen ? "Kurulumu kapat" : "Kurulumu aç"}
+              />
+            </InlineStack>
+          </Box>
 
             {/* Steps — collapse animasyonu */}
             <div
@@ -239,8 +241,7 @@ export default function Dashboard() {
                 </Box>
               </div>
             </div>
-          </Card>
-        )}
+        </Card>
 
         {/* Quick actions */}
         <InlineGrid columns={{ xs: 1, sm: 2 }} gap="400">
