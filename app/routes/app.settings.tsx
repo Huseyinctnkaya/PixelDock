@@ -58,8 +58,8 @@ function hsbToHex({ hue, saturation, brightness }: HSB): string {
   return `#${hex(r)}${hex(g)}${hex(b)}`;
 }
 
-export type { AppSettings } from "../settings.server";
-export { SETTINGS_NAMESPACE, SETTINGS_KEY, DEFAULT_APP_SETTINGS, fetchAppSettings } from "../settings.server";
+import type { AppSettings } from "../settings.server";
+import { SETTINGS_NAMESPACE, SETTINGS_KEY, DEFAULT_APP_SETTINGS, fetchAppSettings } from "../settings.server";
 
 const TYPE_OPTIONS = [
   { label: "PNG", value: "image/png" },
