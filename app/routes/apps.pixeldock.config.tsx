@@ -52,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const form: FormEntry | undefined = registry[formId];
-  if (!form) {
+  if (!form || (form.status ?? "draft") !== "active") {
     return corsJson({ config: null });
   }
 

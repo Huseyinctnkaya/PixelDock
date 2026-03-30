@@ -12,10 +12,11 @@ import {
   InlineGrid,
   InlineStack,
   Page,
+  Tabs,
   Text,
 } from "@shopify/polaris";
 import { PlusIcon, DeleteIcon, EditIcon } from "@shopify/polaris-icons";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,6 +34,8 @@ export type FormBlock = {
   accept?: string;
 };
 
+export type FormStatus = "active" | "draft";
+
 export type FormEntry = {
   id: string;
   name: string;
@@ -40,6 +43,7 @@ export type FormEntry = {
   submitLabel: string;
   blocks: FormBlock[];
   createdAt: string;
+  status: FormStatus;
 };
 
 export type FormsRegistry = Record<string, FormEntry>;
@@ -202,11 +206,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       submitLabel: "Kaydet",
       blocks: DEFAULT_BLOCKS.map((b) => ({ ...b, id: `${b.id}-${id}` })),
       createdAt: new Date().toISOString(),
+      status: "draft",
     };
     registry[id] = newForm;
     const result = await saveRegistry(admin, registry);
     if (!result.ok) return { ok: false, error: result.error, newId: null };
     return { ok: true, error: null, newId: id };
+  }
+
+  if (intent === "toggle_status") {
+    const id = formData.get("id") as string;
+    if (registry[id]) {
+      registry[id].status = registry[id].status === "active" ? "draft" : "active";
+      const result = await saveRegistry(admin, registry);
+      if (!result.ok) return { ok: false, error: result.error, newId: null };
+    }
+    return { ok: true, error: null, newId: null };
   }
 
   if (intent === "delete") {
@@ -222,10 +237,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
+const TABS = [
+  { id: "all", content: "Tümü" },
+  { id: "active", content: "Aktif" },
+  { id: "draft", content: "Taslak" },
+];
+
 export default function FormsIndex() {
   const { forms } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState(0);
 
   const isCreating = fetcher.state !== "idle" && fetcher.formData?.get("intent") === "create";
 
@@ -247,6 +269,27 @@ export default function FormsIndex() {
     fd.append("id", id);
     fetcher.submit(fd, { method: "post" });
   };
+
+  const handleToggleStatus = (id: string) => {
+    const fd = new FormData();
+    fd.append("intent", "toggle_status");
+    fd.append("id", id);
+    fetcher.submit(fd, { method: "post" });
+  };
+
+  const filterKey = TABS[selectedTab].id;
+  const filteredForms = filterKey === "all"
+    ? forms
+    : forms.filter((f) => (f.status ?? "draft") === filterKey);
+
+  const activeCnt = forms.filter((f) => (f.status ?? "draft") === "active").length;
+  const draftCnt = forms.filter((f) => (f.status ?? "draft") === "draft").length;
+
+  const tabs = [
+    { id: "all", content: `Tümü (${forms.length})` },
+    { id: "active", content: `Aktif (${activeCnt})` },
+    { id: "draft", content: `Taslak (${draftCnt})` },
+  ];
 
   return (
     <Page
@@ -271,48 +314,85 @@ export default function FormsIndex() {
           <p>Müşterilere gösterilecek formları buradan yönetebilirsin.</p>
         </EmptyState>
       ) : (
-        <BlockStack gap="300">
-          {forms.map((form) => (
-            <Card key={form.id} padding="500">
-              <InlineGrid columns="1fr auto" alignItems="center" gap="400">
-                <BlockStack gap="150">
-                  <InlineStack gap="300" blockAlign="center" wrap={false}>
-                    <Text as="h3" variant="headingSm" fontWeight="semibold">
-                      {form.name}
-                    </Text>
-                    <Badge tone="info">{form.id}</Badge>
-                  </InlineStack>
-                  <InlineStack gap="400">
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      {form.blocks.length} alan
-                    </Text>
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      {new Date(form.createdAt).toLocaleDateString("tr-TR")}
-                    </Text>
-                  </InlineStack>
-                </BlockStack>
-                <InlineStack gap="200" wrap={false}>
-                  <Button
-                    icon={EditIcon}
-                    variant="secondary"
-                    size="slim"
-                    onClick={() => navigate(`/app/forms/${form.id}`)}
-                  >
-                    Düzenle
-                  </Button>
-                  <Button
-                    icon={DeleteIcon}
-                    variant="tertiary"
-                    size="slim"
-                    tone="critical"
-                    onClick={() => handleDelete(form.id)}
-                  >
-                    Sil
-                  </Button>
-                </InlineStack>
-              </InlineGrid>
-            </Card>
-          ))}
+        <BlockStack gap="400">
+          <Card padding="0">
+            <Tabs
+              tabs={tabs}
+              selected={selectedTab}
+              onSelect={setSelectedTab}
+            />
+          </Card>
+
+          {filteredForms.length === 0 ? (
+            <Box paddingBlock="800">
+              <Text as="p" variant="bodyMd" tone="subdued" alignment="center">
+                Bu filtrede form yok.
+              </Text>
+            </Box>
+          ) : (
+            <BlockStack gap="300">
+              {filteredForms.map((form) => {
+                const isActive = (form.status ?? "draft") === "active";
+                const isToggling =
+                  fetcher.state !== "idle" &&
+                  fetcher.formData?.get("intent") === "toggle_status" &&
+                  fetcher.formData?.get("id") === form.id;
+
+                return (
+                  <Card key={form.id} padding="500">
+                    <InlineGrid columns="1fr auto" alignItems="center" gap="400">
+                      <BlockStack gap="150">
+                        <InlineStack gap="300" blockAlign="center" wrap={false}>
+                          <Text as="h3" variant="headingSm" fontWeight="semibold">
+                            {form.name}
+                          </Text>
+                          <Badge tone="info">{form.id}</Badge>
+                          <Badge tone={isActive ? "success" : "attention"}>
+                            {isActive ? "Aktif" : "Taslak"}
+                          </Badge>
+                        </InlineStack>
+                        <InlineStack gap="400">
+                          <Text as="p" variant="bodySm" tone="subdued">
+                            {form.blocks.length} alan
+                          </Text>
+                          <Text as="p" variant="bodySm" tone="subdued">
+                            {new Date(form.createdAt).toLocaleDateString("tr-TR")}
+                          </Text>
+                        </InlineStack>
+                      </BlockStack>
+                      <InlineStack gap="200" wrap={false}>
+                        <Button
+                          variant="tertiary"
+                          size="slim"
+                          loading={isToggling}
+                          onClick={() => handleToggleStatus(form.id)}
+                        >
+                          {isActive ? "Taslağa Al" : "Yayınla"}
+                        </Button>
+                        <Button
+                          icon={EditIcon}
+                          variant="secondary"
+                          size="slim"
+                          onClick={() => navigate(`/app/forms/${form.id}`)}
+                        >
+                          Düzenle
+                        </Button>
+                        <Button
+                          icon={DeleteIcon}
+                          variant="tertiary"
+                          size="slim"
+                          tone="critical"
+                          onClick={() => handleDelete(form.id)}
+                        >
+                          Sil
+                        </Button>
+                      </InlineStack>
+                    </InlineGrid>
+                  </Card>
+                );
+              })}
+            </BlockStack>
+          )}
         </BlockStack>
       )}
 
