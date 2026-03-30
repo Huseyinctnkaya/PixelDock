@@ -6,7 +6,6 @@
   data-proxy-url="{{ routes.root_url }}apps/pixeldock/upload"
   data-variant-id="{{ product.selected_or_first_available_variant.id }}"
   data-product-id="{{ product.admin_graphql_api_id }}"
-  data-form-id="{{ block.settings.form_id }}"
   {{ block.shopify_attributes }}
 >
   <button class="pixeldock-trigger" type="button">
@@ -41,13 +40,6 @@
 {
   "name": "PixelDock Upload",
   "target": "section",
-  "settings": [
-    {
-      "type": "text",
-      "id": "form_id",
-      "label": "Form ID (optional)",
-      "info": "Leave empty to use the form assigned to this product in the PixelDock app. Fill in to override with a specific Form ID."
-    }
-  ]
+  "settings": []
 }
 {% endschema %}

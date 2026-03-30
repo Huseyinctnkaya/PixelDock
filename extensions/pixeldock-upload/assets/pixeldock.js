@@ -718,17 +718,11 @@
 
   // ─── Init ─────────────────────────────────────────────────────────────────
   function initBlock(block) {
-    var formId = block.dataset.formId;
     var productId = block.dataset.productId;
     var configBase = block.dataset.proxyUrl.replace('/upload', '/config');
-    var configUrl;
-    if (formId) {
-      configUrl = configBase + '?form_id=' + encodeURIComponent(formId);
-    } else if (productId) {
-      configUrl = configBase + '?product_id=' + encodeURIComponent(productId);
-    } else {
-      configUrl = configBase;
-    }
+    var configUrl = productId
+      ? configBase + '?product_id=' + encodeURIComponent(productId)
+      : configBase;
 
     fetchConfig(configUrl).then(function (config) {
       if (!config) {
