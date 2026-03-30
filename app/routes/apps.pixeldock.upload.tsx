@@ -1,6 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
-import { fetchAppSettings } from "./app.settings";
+import { fetchAppSettings } from "../settings.server";
 
 // POST /apps/pixeldock/upload
 // Called by the theme extension via app proxy.

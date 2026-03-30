@@ -1,7 +1,7 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 import type { FormEntry, FormsRegistry } from "./app.forms._index";
-import { fetchAppSettings } from "./app.settings";
+import { fetchAppSettings } from "../settings.server";
 
 const NAMESPACE = "pixeldock";
 const REGISTRY_KEY = "forms_registry";
