@@ -320,7 +320,16 @@ export default function Dashboard() {
           ))}
         </InlineGrid>
 
-        <Box paddingBlockEnd="1200" />
+        <Box paddingBlockEnd="400">
+          <Text as="p" variant="bodySm" tone="subdued" alignment="center">
+            Made with ♥ by{" "}
+            <a href="https://www.34devs.com" target="_blank" rel="noopener noreferrer" style={{ color: "inherit", fontWeight: 600 }}>
+              34Devs
+            </a>
+          </Text>
+        </Box>
+
+        <Box paddingBlockEnd="800" />
       </BlockStack>
     </Page>
   );
