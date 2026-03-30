@@ -21,8 +21,6 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   MinusCircleIcon,
-  EmailIcon,
-  QuestionCircleIcon,
 } from "@shopify/polaris-icons";
 import { useState } from "react";
 
@@ -280,51 +278,45 @@ export default function Dashboard() {
         </InlineGrid>
 
         {/* Support */}
-        <Card>
-          <BlockStack gap="400">
-            <Text as="h2" variant="headingSm" fontWeight="semibold">
-              Yardım ve destek
-            </Text>
-            <InlineGrid columns={2} gap="300">
-              <Box
-                borderWidth="025"
-                borderColor="border"
-                borderRadius="200"
-                padding="400"
-              >
-                <InlineStack gap="300" blockAlign="start">
-                  <Icon source={EmailIcon} tone="subdued" />
-                  <BlockStack gap="100">
-                    <Text as="p" variant="bodyMd" fontWeight="semibold">
-                      E-posta Desteği
-                    </Text>
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      Sorularınız için bize ulaşın, en kısa sürede geri döneceğiz.
-                    </Text>
-                  </BlockStack>
-                </InlineStack>
-              </Box>
-              <Box
-                borderWidth="025"
-                borderColor="border"
-                borderRadius="200"
-                padding="400"
-              >
-                <InlineStack gap="300" blockAlign="start">
-                  <Icon source={QuestionCircleIcon} tone="subdued" />
-                  <BlockStack gap="100">
-                    <Text as="p" variant="bodyMd" fontWeight="semibold">
-                      Dokümantasyon
-                    </Text>
-                    <Text as="p" variant="bodySm" tone="subdued">
-                      Kurulum rehberi ve sık sorulan sorular için dokümanlara göz atın.
-                    </Text>
-                  </BlockStack>
-                </InlineStack>
-              </Box>
-            </InlineGrid>
-          </BlockStack>
-        </Card>
+        <InlineGrid columns={2} gap="400">
+          {[
+            {
+              emoji: "✉️",
+              title: "E-posta Desteği",
+              desc: "Sorularınız için bize ulaşın, en kısa sürede geri döneceğiz.",
+            },
+            {
+              emoji: "📖",
+              title: "Dokümantasyon",
+              desc: "Kurulum rehberi ve sık sorulan sorular için dokümanlara göz atın.",
+            },
+          ].map((item) => (
+            <Card key={item.title}>
+              <BlockStack gap="300">
+                <div style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 12,
+                  background: "#F3F4F6",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 22,
+                }}>
+                  {item.emoji}
+                </div>
+                <BlockStack gap="100">
+                  <Text as="p" variant="bodyMd" fontWeight="semibold">
+                    {item.title}
+                  </Text>
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    {item.desc}
+                  </Text>
+                </BlockStack>
+              </BlockStack>
+            </Card>
+          ))}
+        </InlineGrid>
 
         <Box paddingBlockEnd="1200" />
       </BlockStack>
