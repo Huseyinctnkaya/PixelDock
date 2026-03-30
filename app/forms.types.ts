@@ -33,6 +33,8 @@ export type FormBlock = {
   accept?: string;
   min?: string;
   max?: string;
+  // Optional: namespace.key of the Shopify metafield to write on submit
+  metafieldKey?: string;
 };
 
 export type FormStatus = "active" | "draft";

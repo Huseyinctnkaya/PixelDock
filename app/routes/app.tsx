@@ -22,6 +22,7 @@ export default function App() {
         <s-app-nav>
           <s-link href="/app/images">Image Library</s-link>
           <s-link href="/app/forms">Formlar</s-link>
+          <s-link href="/app/metafields">Meta Alanları</s-link>
           <s-link href="/app/settings">Ayarlar</s-link>
         </s-app-nav>
         <Outlet />

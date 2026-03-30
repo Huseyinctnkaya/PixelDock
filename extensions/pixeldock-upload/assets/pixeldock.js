@@ -609,11 +609,35 @@
             }
           });
 
-          return fetch('/cart/add.js', {
+          // Build metafield payload for mapped fields
+          var metaFields = [];
+          config.blocks.forEach(function(b) {
+            if (b.metafieldKey && properties[b.label] !== undefined) {
+              metaFields.push({ key: b.metafieldKey, value: String(properties[b.label]) });
+            }
+          });
+
+          var cartPromise = fetch('/cart/add.js', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id: variantId, quantity: 1, properties: properties }),
           });
+
+          var metaPromise = metaFields.length
+            ? cartPromise.then(function() {
+                var metaUrl = uploadUrl.replace('/upload', '/meta');
+                return fetch(metaUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    variantId: 'gid://shopify/ProductVariant/' + variantId,
+                    fields: metaFields,
+                  }),
+                }).catch(function() {}); // non-fatal
+              })
+            : cartPromise;
+
+          return cartPromise;
         })
         .then(function (r) {
           if (!r.ok) throw new Error('Cart update failed');

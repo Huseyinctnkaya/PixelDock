@@ -157,7 +157,36 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   if (!form) {
     throw new Response("Form bulunamadı", { status: 404 });
   }
-  return { form };
+
+  // Fetch metafield definitions for the metafield picker
+  const metaRes = await admin.graphql(`#graphql
+    query MetafieldDefs {
+      productDefs: metafieldDefinitions(ownerType: PRODUCT, first: 50, namespace: "pixeldock") {
+        nodes { namespace key name }
+      }
+      customerDefs: metafieldDefinitions(ownerType: CUSTOMER, first: 50, namespace: "pixeldock") {
+        nodes { namespace key name }
+      }
+      orderDefs: metafieldDefinitions(ownerType: ORDER, first: 50, namespace: "pixeldock") {
+        nodes { namespace key name }
+      }
+    }
+  `);
+  const metaData = (await metaRes.json()) as {
+    data?: {
+      productDefs?: { nodes: Array<{ namespace: string; key: string; name: string }> };
+      customerDefs?: { nodes: Array<{ namespace: string; key: string; name: string }> };
+      orderDefs?: { nodes: Array<{ namespace: string; key: string; name: string }> };
+    };
+  };
+
+  const metafieldDefs = [
+    ...(metaData.data?.productDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Ürün`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.customerDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Müşteri`, value: `${n.namespace}.${n.key}` })),
+    ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} (${n.namespace}.${n.key}) — Sipariş`, value: `${n.namespace}.${n.key}` })),
+  ];
+
+  return { form, metafieldDefs };
 };
 
 // ─── Action ───────────────────────────────────────────────────────────────────
@@ -190,7 +219,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 export default function FormEditor() {
-  const { form: initialForm } = useLoaderData<typeof loader>();
+  const { form: initialForm, metafieldDefs } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const isSaving = fetcher.state !== "idle";
@@ -419,6 +448,7 @@ export default function FormEditor() {
                   onDragOver={handleDragOver}
                   onDrop={handleDrop}
                   onDragEnd={handleDragEnd}
+                  metafieldDefs={metafieldDefs}
                 />
               ))}
             </BlockStack>
@@ -464,6 +494,7 @@ function BlockRow({
   onDragOver,
   onDrop,
   onDragEnd,
+  metafieldDefs,
 }: {
   block: FormBlock;
   idx: number;
@@ -477,6 +508,7 @@ function BlockRow({
   onDragOver: (idx: number) => void;
   onDrop: (idx: number) => void;
   onDragEnd: () => void;
+  metafieldDefs: Array<{ label: string; value: string }>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -709,6 +741,23 @@ function BlockRow({
                   value={block.required ? "true" : "false"}
                   onChange={(v) => onUpdate(block.id, { required: v === "true" })}
                 />
+
+                {block.type !== "divider" && block.type !== "info" && (
+                  <Select
+                    label="Metafield olarak kaydet"
+                    options={[
+                      { label: "— Kaydetme —", value: "" },
+                      ...metafieldDefs,
+                    ]}
+                    value={block.metafieldKey ?? ""}
+                    onChange={(v) => onUpdate(block.id, { metafieldKey: v || undefined })}
+                    helpText={
+                      block.metafieldKey
+                        ? `Form gönderiminde bu değer "${block.metafieldKey}" metafield'ına yazılır.`
+                        : "Bu alanı bir Shopify metafield'ına bağlamak için seçin."
+                    }
+                  />
+                )}
               </FormLayout>
             </Box>
           </div>
