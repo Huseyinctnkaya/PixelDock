@@ -26,7 +26,7 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
 } from "@shopify/polaris-icons";
-import { useState, useCallback, useId } from "react";
+import { useState, useCallback, useRef } from "react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -214,6 +214,36 @@ export default function FormBuilder() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newBlockType, setNewBlockType] = useState<BlockType>("input");
 
+  // Drag & drop state
+  const dragSrcIdx = useRef<number>(-1);
+  const [dragOverIdx, setDragOverIdx] = useState<number>(-1);
+
+  const handleDragStart = useCallback((idx: number) => {
+    dragSrcIdx.current = idx;
+  }, []);
+
+  const handleDragOver = useCallback((idx: number) => {
+    setDragOverIdx(idx);
+  }, []);
+
+  const handleDrop = useCallback((dropIdx: number) => {
+    const srcIdx = dragSrcIdx.current;
+    dragSrcIdx.current = -1;
+    setDragOverIdx(-1);
+    if (srcIdx === -1 || srcIdx === dropIdx) return;
+    setConfig((c) => {
+      const blocks = [...c.blocks];
+      const [moved] = blocks.splice(srcIdx, 1);
+      blocks.splice(dropIdx, 0, moved);
+      return { ...c, blocks };
+    });
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    dragSrcIdx.current = -1;
+    setDragOverIdx(-1);
+  }, []);
+
   const saved = fetcher.data?.ok === true;
   const saveError = fetcher.data?.error;
 
@@ -345,17 +375,24 @@ export default function FormBuilder() {
                 <BlockRow
                   key={block.id}
                   block={block}
+                  idx={idx}
                   isFirst={idx === 0}
                   isLast={idx === config.blocks.length - 1}
+                  isDragOver={dragOverIdx === idx}
                   onUpdate={updateBlock}
                   onDelete={deleteBlock}
                   onMove={moveBlock}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onDragEnd={handleDragEnd}
                 />
               ))}
             </BlockStack>
           )}
         </Card>
 
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
 
       {/* Add block modal */}
@@ -383,26 +420,66 @@ export default function FormBuilder() {
 
 function BlockRow({
   block,
+  idx,
   isFirst,
   isLast,
+  isDragOver,
   onUpdate,
   onDelete,
   onMove,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
 }: {
   block: FormBlock;
+  idx: number;
   isFirst: boolean;
   isLast: boolean;
+  isDragOver: boolean;
   onUpdate: (id: string, patch: Partial<FormBlock>) => void;
   onDelete: (id: string) => void;
   onMove: (id: string, dir: "up" | "down") => void;
+  onDragStart: (idx: number) => void;
+  onDragOver: (idx: number) => void;
+  onDrop: (idx: number) => void;
+  onDragEnd: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const hasOptions = block.type === "toggle_group" || block.type === "select";
 
   return (
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        setIsDragging(true);
+        onDragStart(idx);
+      }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        onDragOver(idx);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        onDrop(idx);
+      }}
+      onDragEnd={() => {
+        setIsDragging(false);
+        onDragEnd();
+      }}
+      style={{
+        opacity: isDragging ? 0.4 : 1,
+        borderBottom: isDragOver ? "2px solid #C84B11" : undefined,
+        transition: "opacity 0.15s",
+        cursor: "grab",
+      }}
+    >
     <Box
-      borderBlockEndWidth={isLast ? "0" : "025"}
+      borderBlockEndWidth={isLast && !isDragOver ? "0" : "025"}
       borderColor="border"
     >
       {/* Row header */}
@@ -552,6 +629,7 @@ function BlockRow({
         </div>
       </div>
     </Box>
+    </div>
   );
 }
 

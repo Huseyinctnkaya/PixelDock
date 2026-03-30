@@ -227,6 +227,7 @@ export default function Settings() {
         </Layout.Section>
 
       </Layout>
+      <Box paddingBlockEnd="1200" />
     </Page>
   );
 }

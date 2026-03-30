@@ -134,6 +134,7 @@ export default function ImageLibrary() {
             )}
           </>
         )}
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );

@@ -275,6 +275,7 @@ export default function Dashboard() {
           </Card>
         </InlineGrid>
 
+        <Box paddingBlockEnd="1200" />
       </BlockStack>
     </Page>
   );
