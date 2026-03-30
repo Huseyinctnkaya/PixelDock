@@ -679,7 +679,38 @@
 
     fetchConfig(configUrl).then(function (config) {
       if (!config) {
-        console.warn('[PixelDock] Form config alınamadı.');
+        console.warn('[PixelDock] Form config alınamadı. Form ID eksik veya form taslak durumda.');
+        // Still wire the trigger to show a helpful message
+        var triggerEl = block.querySelector('.pixeldock-trigger');
+        if (triggerEl) {
+          triggerEl.addEventListener('click', function () {
+            var modal = block.querySelector('.pixeldock-modal');
+            var titleEl = block.querySelector('.pixeldock-dialog__title');
+            var dialog = block.querySelector('.pixeldock-dialog');
+            if (titleEl) titleEl.textContent = 'Yapılandırma Hatası';
+            if (dialog && !dialog.querySelector('.pixeldock-config-error')) {
+              var errEl = document.createElement('div');
+              errEl.className = 'pixeldock-config-error pixeldock-info-box';
+              errEl.style.marginTop = '16px';
+              errEl.textContent = 'Form henüz yapılandırılmamış. Lütfen PixelDock uygulamasından bir form yayınlayın ve Form ID\'yi tema editörüne girin.';
+              dialog.appendChild(errEl);
+            }
+            if (modal) {
+              modal.classList.add('is-open');
+              modal.setAttribute('aria-hidden', 'false');
+              document.body.style.overflow = 'hidden';
+              var overlay = block.querySelector('.pixeldock-overlay');
+              var closeBtn = block.querySelector('.pixeldock-dialog__close');
+              function closeErr() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+              }
+              if (overlay) overlay.addEventListener('click', closeErr, { once: true });
+              if (closeBtn) closeBtn.addEventListener('click', closeErr, { once: true });
+            }
+          });
+        }
         return;
       }
 
