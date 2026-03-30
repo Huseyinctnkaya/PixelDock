@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
+import { fetchAppSettings } from "./app.settings";
 
 // POST /apps/pixeldock/upload
 // Called by the theme extension via app proxy.
@@ -15,6 +16,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return corsJson({ error: "Unauthorized" }, 401);
   }
 
+  const appSettings = await fetchAppSettings(admin);
+
   let file: File | null = null;
 
   try {
@@ -29,14 +32,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return corsJson({ error: "No file provided" }, 400);
   }
 
-  const allowedTypes = ["image/png", "image/jpeg"];
-  if (!allowedTypes.includes(file.type)) {
-    return corsJson({ error: "Only PNG and JPG files are accepted" }, 400);
+  if (!appSettings.acceptedTypes.includes(file.type)) {
+    return corsJson({ error: `Kabul edilen dosya tipleri: ${appSettings.acceptedTypes.join(", ")}` }, 400);
   }
 
-  const MAX_BYTES = 5 * 1024 * 1024;
+  const MAX_BYTES = appSettings.maxFileSizeMb * 1024 * 1024;
   if (file.size > MAX_BYTES) {
-    return corsJson({ error: "File exceeds 5 MB limit" }, 400);
+    return corsJson({ error: `Dosya ${appSettings.maxFileSizeMb} MB sınırını aşıyor` }, 400);
   }
 
   // --- Step 1: Create staged upload target ---

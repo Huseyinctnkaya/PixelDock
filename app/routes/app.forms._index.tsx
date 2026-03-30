@@ -4,12 +4,13 @@ import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import {
   Badge,
+  BlockStack,
   Box,
   Button,
+  Card,
   EmptyState,
-  IndexTable,
+  InlineGrid,
   InlineStack,
-  Link,
   Page,
   Text,
 } from "@shopify/polaris";
@@ -247,8 +248,6 @@ export default function FormsIndex() {
     fetcher.submit(fd, { method: "post" });
   };
 
-  const resourceName = { singular: "form", plural: "formlar" };
-
   return (
     <Page
       title="Formlar"
@@ -272,45 +271,35 @@ export default function FormsIndex() {
           <p>Müşterilere gösterilecek formları buradan yönetebilirsin.</p>
         </EmptyState>
       ) : (
-        <IndexTable
-          resourceName={resourceName}
-          itemCount={forms.length}
-          selectable={false}
-          headings={[
-            { title: "Form Adı" },
-            { title: "Form ID" },
-            { title: "Alan Sayısı" },
-            { title: "Oluşturma Tarihi" },
-            { title: "İşlemler" },
-          ]}
-        >
-          {forms.map((form, idx) => (
-            <IndexTable.Row id={form.id} key={form.id} position={idx}>
-              <IndexTable.Cell>
-                <Text as="span" variant="bodyMd" fontWeight="semibold">
-                  {form.name}
-                </Text>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
-                <Badge>{form.id}</Badge>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
-                <Text as="span" variant="bodyMd">
-                  {form.blocks.length}
-                </Text>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
-                <Text as="span" variant="bodyMd">
-                  {new Date(form.createdAt).toLocaleDateString("tr-TR")}
-                </Text>
-              </IndexTable.Cell>
-              <IndexTable.Cell>
+        <BlockStack gap="300">
+          {forms.map((form) => (
+            <Card key={form.id} padding="500">
+              <InlineGrid columns="1fr auto" alignItems="center" gap="400">
+                <BlockStack gap="150">
+                  <InlineStack gap="300" blockAlign="center" wrap={false}>
+                    <Text as="h3" variant="headingSm" fontWeight="semibold">
+                      {form.name}
+                    </Text>
+                    <Badge tone="info">{form.id}</Badge>
+                  </InlineStack>
+                  <InlineStack gap="400">
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      {form.blocks.length} alan
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      {new Date(form.createdAt).toLocaleDateString("tr-TR")}
+                    </Text>
+                  </InlineStack>
+                </BlockStack>
                 <InlineStack gap="200" wrap={false}>
-                  <Link url={`/app/forms/${form.id}`} removeUnderline>
-                    <Button icon={EditIcon} variant="tertiary" size="slim">
-                      Düzenle
-                    </Button>
-                  </Link>
+                  <Button
+                    icon={EditIcon}
+                    variant="secondary"
+                    size="slim"
+                    onClick={() => navigate(`/app/forms/${form.id}`)}
+                  >
+                    Düzenle
+                  </Button>
                   <Button
                     icon={DeleteIcon}
                     variant="tertiary"
@@ -321,10 +310,10 @@ export default function FormsIndex() {
                     Sil
                   </Button>
                 </InlineStack>
-              </IndexTable.Cell>
-            </IndexTable.Row>
+              </InlineGrid>
+            </Card>
           ))}
-        </IndexTable>
+        </BlockStack>
       )}
 
       <Box paddingBlockEnd="1200" />
