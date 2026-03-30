@@ -17,10 +17,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const url = new URL(request.url);
   const formId = url.searchParams.get("form_id");
+  const productId = url.searchParams.get("product_id");
 
-  console.log("[PixelDock config] formId from URL:", formId);
-  if (!formId) {
-    return corsJson({ config: null, debug: "no_form_id" });
+  if (!formId && !productId) {
+    return corsJson({ config: null, debug: "no_form_id_or_product_id" });
   }
 
   const res = await admin.graphql(
@@ -40,7 +40,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 
   const raw = data.data?.currentAppInstallation?.metafield?.value;
-  console.log("[PixelDock config] raw registry:", raw ? raw.slice(0, 200) : "null");
 
   if (!raw) {
     return corsJson({ config: null, debug: "no_registry" });
@@ -53,10 +52,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     return corsJson({ config: null, debug: "parse_error" });
   }
 
-  const form: FormEntry | undefined = registry[formId];
-  console.log("[PixelDock config] formId:", formId, "found:", !!form, "status:", form?.status);
+  let form: FormEntry | undefined;
+
+  if (formId) {
+    // Explicit form_id takes priority
+    form = registry[formId];
+  } else if (productId) {
+    // Find the first active form assigned to this product
+    form = Object.values(registry).find(
+      (f) =>
+        (f.status ?? "draft") === "active" &&
+        (f.assignedProductIds ?? []).includes(productId),
+    );
+  }
+
   if (!form || (form.status ?? "draft") !== "active") {
-    return corsJson({ config: null, debug: `form_${!form ? "not_found" : "not_active"}`, status: form?.status });
+    return corsJson({ config: null, debug: `form_${!form ? "not_found" : "not_active"}` });
   }
 
   const appSettings = await fetchAppSettings(admin);

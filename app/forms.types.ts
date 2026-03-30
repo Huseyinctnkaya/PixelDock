@@ -47,6 +47,7 @@ export type FormEntry = {
   blocks: FormBlock[];
   createdAt: string;
   status: FormStatus;
+  assignedProductIds?: string[];
 };
 
 export type FormsRegistry = Record<string, FormEntry>;

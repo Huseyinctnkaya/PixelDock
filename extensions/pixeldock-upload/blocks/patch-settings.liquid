@@ -5,11 +5,12 @@
   data-block-id="{{ block.id }}"
   data-proxy-url="{{ routes.root_url }}apps/pixeldock/upload"
   data-variant-id="{{ product.selected_or_first_available_variant.id }}"
+  data-product-id="{{ product.admin_graphql_api_id }}"
   data-form-id="{{ block.settings.form_id }}"
   {{ block.shopify_attributes }}
 >
   <button class="pixeldock-trigger" type="button">
-    Patch Ekle
+    Upload
   </button>
 
   <div class="pixeldock-modal" aria-hidden="true" role="dialog" aria-modal="true">
@@ -17,8 +18,8 @@
     <div class="pixeldock-dialog">
 
       <div class="pixeldock-dialog__header">
-        <span class="pixeldock-dialog__title">Patch Ayarları</span>
-        <button class="pixeldock-dialog__close" type="button" aria-label="Kapat">
+        <span class="pixeldock-dialog__title">Settings</span>
+        <button class="pixeldock-dialog__close" type="button" aria-label="Close">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
             <path d="M1 1L13 13M13 1L1 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
           </svg>
@@ -44,8 +45,8 @@
     {
       "type": "text",
       "id": "form_id",
-      "label": "Form ID",
-      "info": "PixelDock uygulamasından kopyaladığın Form ID'sini gir"
+      "label": "Form ID (optional)",
+      "info": "Leave empty to use the form assigned to this product in the PixelDock app. Fill in to override with a specific Form ID."
     }
   ]
 }

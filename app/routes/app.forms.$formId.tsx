@@ -16,8 +16,10 @@ import {
   Modal,
   Page,
   Select,
+  Spinner,
   Text,
   TextField,
+  Thumbnail,
 } from "@shopify/polaris";
 import {
   DeleteIcon,
@@ -26,6 +28,8 @@ import {
   ChevronUpIcon,
   ChevronDownIcon,
   ClipboardIcon,
+  SearchIcon,
+  XIcon,
 } from "@shopify/polaris-icons";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { SaveBar, useAppBridge } from "@shopify/app-bridge-react";
@@ -186,7 +190,33 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     ...(metaData.data?.orderDefs?.nodes ?? []).map((n) => ({ label: `${n.name} · ${n.namespace}.${n.key} (Order)`, value: `${n.namespace}.${n.key}` })),
   ];
 
-  return { form, metafieldDefs };
+  // Resolve titles for already-assigned products
+  type AssignedProduct = { id: string; title: string; image: string | null };
+  let assignedProducts: AssignedProduct[] = [];
+  const assignedIds = form.assignedProductIds ?? [];
+  if (assignedIds.length > 0) {
+    const prodRes = await admin.graphql(
+      `#graphql
+      query ProductsByIds($ids: [ID!]!) {
+        nodes(ids: $ids) {
+          ... on Product {
+            id
+            title
+            featuredImage { url }
+          }
+        }
+      }`,
+      { variables: { ids: assignedIds } },
+    );
+    const prodData = (await prodRes.json()) as {
+      data?: { nodes?: Array<{ id?: string; title?: string; featuredImage?: { url: string } | null } | null> | null };
+    };
+    assignedProducts = (prodData.data?.nodes ?? [])
+      .filter((n): n is { id: string; title: string; featuredImage?: { url: string } | null } => !!n?.id)
+      .map((n) => ({ id: n.id, title: n.title ?? "", image: n.featuredImage?.url ?? null }));
+  }
+
+  return { form, metafieldDefs, assignedProducts };
 };
 
 // ─── Action ───────────────────────────────────────────────────────────────────
@@ -194,33 +224,65 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 export const action = async ({ request, params }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
-  const raw = formData.get("config") as string;
+  const intent = formData.get("intent") as string | null;
   const formId = params.formId as string;
 
+  // ── Product search (read-only, no registry mutation) ──────────────────────
+  if (intent === "search_products") {
+    const query = (formData.get("query") as string)?.trim() ?? "";
+    const searchRes = await admin.graphql(
+      `#graphql
+      query SearchProducts($query: String!) {
+        products(first: 8, query: $query) {
+          nodes {
+            id
+            title
+            featuredImage { url }
+          }
+        }
+      }`,
+      { variables: { query } },
+    );
+    const searchData = (await searchRes.json()) as {
+      data?: { products?: { nodes?: Array<{ id: string; title: string; featuredImage?: { url: string } | null }> } };
+    };
+    const products = (searchData.data?.products?.nodes ?? []).map((p) => ({
+      id: p.id,
+      title: p.title,
+      image: p.featuredImage?.url ?? null,
+    }));
+    return { ok: true, error: null, products };
+  }
+
+  // ── Save form config ───────────────────────────────────────────────────────
+  const raw = formData.get("config") as string;
   let updatedForm: FormEntry;
   try {
     updatedForm = JSON.parse(raw);
   } catch {
-    return { ok: false, error: "Invalid config." };
+    return { ok: false, error: "Invalid config.", products: null };
   }
 
   const registry = await fetchRegistry(admin);
   if (!registry[formId]) {
-    return { ok: false, error: "Form not found." };
+    return { ok: false, error: "Form not found.", products: null };
   }
 
   registry[formId] = { ...updatedForm, id: formId };
 
   const result = await saveRegistry(admin, registry);
-  if (!result.ok) return { ok: false, error: result.error };
-  return { ok: true, error: null };
+  if (!result.ok) return { ok: false, error: result.error, products: null };
+  return { ok: true, error: null, products: null };
 };
 
 // ─── Page Component ───────────────────────────────────────────────────────────
 
+type AssignedProduct = { id: string; title: string; image: string | null };
+
 export default function FormEditor() {
-  const { form: initialForm, metafieldDefs } = useLoaderData<typeof loader>();
+  const { form: initialForm, metafieldDefs, assignedProducts: initialAssignedProducts } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
+  const searchFetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const isSaving = fetcher.state !== "idle";
 
@@ -228,6 +290,37 @@ export default function FormEditor() {
   const [isDirty, setIsDirty] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [newBlockType, setNewBlockType] = useState<BlockType>("input");
+
+  // ── Product assignment ────────────────────────────────────────────────────
+  const [assignedProducts, setAssignedProducts] = useState<AssignedProduct[]>(initialAssignedProducts);
+  const [productQuery, setProductQuery] = useState("");
+  const searchResults: AssignedProduct[] = (searchFetcher.data as { products?: AssignedProduct[] } | undefined)?.products ?? [];
+  const isSearching = searchFetcher.state !== "idle";
+
+  const handleProductSearch = useCallback((q: string) => {
+    setProductQuery(q);
+    if (!q.trim()) return;
+    const fd = new FormData();
+    fd.append("intent", "search_products");
+    fd.append("query", q);
+    searchFetcher.submit(fd, { method: "post" });
+  }, [searchFetcher]);
+
+  const handleAssignProduct = useCallback((product: AssignedProduct) => {
+    if (assignedProducts.some((p) => p.id === product.id)) return;
+    const next = [...assignedProducts, product];
+    setAssignedProducts(next);
+    setForm((f) => ({ ...f, assignedProductIds: next.map((p) => p.id) }));
+    setProductQuery("");
+    setIsDirty(true);
+  }, [assignedProducts]);
+
+  const handleUnassignProduct = useCallback((id: string) => {
+    const next = assignedProducts.filter((p) => p.id !== id);
+    setAssignedProducts(next);
+    setForm((f) => ({ ...f, assignedProductIds: next.map((p) => p.id) }));
+    setIsDirty(true);
+  }, [assignedProducts]);
 
   // Drag & drop state
   const dragSrcIdx = useRef<number>(-1);
@@ -396,6 +489,101 @@ export default function FormEditor() {
                 />
               </FormLayout.Group>
             </FormLayout>
+          </BlockStack>
+        </Card>
+
+        {/* Assigned Products */}
+        <Card>
+          <BlockStack gap="400">
+            <BlockStack gap="100">
+              <Text as="h2" variant="headingSm" fontWeight="semibold">
+                Assigned Products
+              </Text>
+              <Text as="p" variant="bodySm" tone="subdued">
+                This form will automatically load on the product pages below. No manual Form ID entry needed.
+              </Text>
+            </BlockStack>
+
+            {/* Search */}
+            <Box>
+              <TextField
+                label="Search products"
+                labelHidden
+                prefix={<Icon source={SearchIcon} />}
+                value={productQuery}
+                onChange={handleProductSearch}
+                placeholder="Search by product name…"
+                autoComplete="off"
+                connectedRight={isSearching ? <Box padding="200"><Spinner size="small" /></Box> : undefined}
+              />
+              {productQuery.trim() && searchResults.length > 0 && (
+                <Box
+                  background="bg-surface"
+                  borderWidth="025"
+                  borderColor="border"
+                  borderRadius="200"
+                  shadow="200"
+                  paddingBlock="100"
+                >
+                  {searchResults.map((p) => (
+                    <div
+                      key={p.id}
+                      onClick={() => handleAssignProduct(p)}
+                      style={{ cursor: "pointer", padding: "8px 12px" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "#F6F6F7")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "")}
+                    >
+                      <InlineStack gap="300" blockAlign="center" wrap={false}>
+                        <Thumbnail
+                          source={p.image ?? ""}
+                          alt={p.title}
+                          size="small"
+                        />
+                        <Text as="p" variant="bodyMd">{p.title}</Text>
+                        {assignedProducts.some((ap) => ap.id === p.id) && (
+                          <Badge tone="success">Assigned</Badge>
+                        )}
+                      </InlineStack>
+                    </div>
+                  ))}
+                </Box>
+              )}
+            </Box>
+
+            {/* Assigned list */}
+            {assignedProducts.length === 0 ? (
+              <Text as="p" variant="bodySm" tone="subdued">
+                No products assigned yet.
+              </Text>
+            ) : (
+              <BlockStack gap="200">
+                {assignedProducts.map((p) => (
+                  <Box
+                    key={p.id}
+                    background="bg-surface-secondary"
+                    borderRadius="200"
+                    padding="300"
+                    borderWidth="025"
+                    borderColor="border"
+                  >
+                    <InlineStack align="space-between" blockAlign="center" wrap={false}>
+                      <InlineStack gap="300" blockAlign="center" wrap={false}>
+                        <Thumbnail source={p.image ?? ""} alt={p.title} size="small" />
+                        <Text as="p" variant="bodyMd">{p.title}</Text>
+                      </InlineStack>
+                      <Button
+                        icon={XIcon}
+                        variant="tertiary"
+                        size="slim"
+                        tone="critical"
+                        onClick={() => handleUnassignProduct(p.id)}
+                        accessibilityLabel="Remove"
+                      />
+                    </InlineStack>
+                  </Box>
+                ))}
+              </BlockStack>
+            )}
           </BlockStack>
         </Card>
 
