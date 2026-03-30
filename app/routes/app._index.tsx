@@ -21,6 +21,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   MinusCircleIcon,
+  EmailIcon,
+  QuestionCircleIcon,
 } from "@shopify/polaris-icons";
 import { useState } from "react";
 
@@ -276,6 +278,53 @@ export default function Dashboard() {
             </BlockStack>
           </Card>
         </InlineGrid>
+
+        {/* Support */}
+        <Card>
+          <BlockStack gap="400">
+            <Text as="h2" variant="headingSm" fontWeight="semibold">
+              Yardım ve destek
+            </Text>
+            <InlineGrid columns={2} gap="300">
+              <Box
+                borderWidth="025"
+                borderColor="border"
+                borderRadius="200"
+                padding="400"
+              >
+                <InlineStack gap="300" blockAlign="start">
+                  <Icon source={EmailIcon} tone="subdued" />
+                  <BlockStack gap="100">
+                    <Text as="p" variant="bodyMd" fontWeight="semibold">
+                      E-posta Desteği
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      Sorularınız için bize ulaşın, en kısa sürede geri döneceğiz.
+                    </Text>
+                  </BlockStack>
+                </InlineStack>
+              </Box>
+              <Box
+                borderWidth="025"
+                borderColor="border"
+                borderRadius="200"
+                padding="400"
+              >
+                <InlineStack gap="300" blockAlign="start">
+                  <Icon source={QuestionCircleIcon} tone="subdued" />
+                  <BlockStack gap="100">
+                    <Text as="p" variant="bodyMd" fontWeight="semibold">
+                      Dokümantasyon
+                    </Text>
+                    <Text as="p" variant="bodySm" tone="subdued">
+                      Kurulum rehberi ve sık sorulan sorular için dokümanlara göz atın.
+                    </Text>
+                  </BlockStack>
+                </InlineStack>
+              </Box>
+            </InlineGrid>
+          </BlockStack>
+        </Card>
 
         <Box paddingBlockEnd="1200" />
       </BlockStack>
